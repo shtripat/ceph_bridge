@@ -1,10 +1,10 @@
-from tendrl.ceph_bridge.common.types import Config
-from tendrl.ceph_bridge.common.types import OsdMap
-from tendrl.ceph_bridge.log import log
-from tendrl.ceph_bridge.manager.request_factory import RequestFactory
-from tendrl.ceph_bridge.manager.user_request import OsdMapModifyingRequest
-from tendrl.ceph_bridge.manager.user_request import PgCreatingRequest
-from tendrl.ceph_bridge.manager.user_request import PoolCreatingRequest
+from ceph_bridge.log import log
+from ceph_bridge.manager.request_factory import RequestFactory
+from ceph_bridge.manager.user_request import OsdMapModifyingRequest
+from ceph_bridge.manager.user_request import PgCreatingRequest
+from ceph_bridge.manager.user_request import PoolCreatingRequest
+from ceph_bridge.types import Config
+from ceph_bridge.types import OsdMap
 
 # Valid values for the 'var' argument to 'ceph osd pool set'
 POOL_PROPERTIES = ["size", "min_size", "crash_replay_interval",

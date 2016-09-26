@@ -1,14 +1,13 @@
+import logging
+import uuid
 
 from ceph_bridge import ceph
-
-from ceph_bridge.logging import LOG
+from ceph_bridge.log import LOG
 from ceph_bridge.types import OsdMap
 from ceph_bridge.types import PgSummary
 from ceph_bridge.types import USER_REQUEST_COMPLETE
 from ceph_bridge.types import USER_REQUEST_SUBMITTED
 from ceph_bridge.util import now
-import logging
-import uuid
 
 
 class PublishError(Exception):

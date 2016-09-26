@@ -1,8 +1,9 @@
-from ceph_bridge.tests.util import load_fixture
-from ceph_bridge.types import OsdMap
-from mock import MagicMock
 from unittest.case import TestCase as UnitTestCase
 
+from mock import MagicMock
+
+from ceph_bridge.tests.util import load_fixture
+from ceph_bridge.types import OsdMap
 
 # An OSD map with some non-default CRUSH rules in it
 INTERESTING_OSD_MAP = load_fixture('interesting_osd_map.json')

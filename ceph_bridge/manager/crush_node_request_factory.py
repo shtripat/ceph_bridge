@@ -1,14 +1,14 @@
+import json
+import logging
+
 from ceph_bridge.manager.request_factory import RequestFactory
 from ceph_bridge.manager.server_monitor import ServiceId
 from ceph_bridge.manager.user_request import OsdMapModifyingRequest
 from ceph_bridge.types import BucketNotEmptyError
 from ceph_bridge.types import OSD
 from ceph_bridge.types import OsdMap
-import json
-import logging
 
-
-log = logging.getLogger('tendrl.ceph_bridge.crush_node_factory')
+log = logging.getLogger('ceph_bridge.crush_node_factory')
 
 
 class CrushNodeRequestFactory(RequestFactory):

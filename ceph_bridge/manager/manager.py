@@ -1,34 +1,28 @@
-import argparse
 import gc
-import gevent.event
-import gevent.greenlet
 import greenlet
 import logging
 import signal
 import sys
-
-from tendrl.ceph_bridge.common import ceph
-import tendrl.ceph_bridge.log
-from tendrl.ceph_bridge.log import log
-from tendrl.ceph_bridge.manager.cluster_monitor import ClusterMonitor
-from tendrl.ceph_bridge.manager.eventer import Eventer
-from tendrl.ceph_bridge.manager.rpc import EtcdThread
-from tendrl.ceph_bridge.manager.server_monitor import ServerMonitor
-from tendrl.ceph_bridge.persistence.persister import Persister
-
 import traceback
 
+import gevent.event
+import gevent.greenlet
+
+from ceph_bridge import ceph
+from ceph_bridge import config
+from ceph_bridge import log
+from ceph_bridge.manager.cluster_monitor import ClusterMonitor
+from ceph_bridge.manager.eventer import Eventer
+from ceph_bridge.manager.rpc import EtcdThread
+from ceph_bridge.manager.server_monitor import ServerMonitor
+from ceph_bridge.persistence.persister import Persister
+
+LOG = log.LOG
 
 try:
     import msgpack
 except ImportError:
     msgpack = None
-
-# Manhole module optional for debugging.
-try:
-    import manhole
-except ImportError:
-    manhole = None
 
 
 class TopLevelEvents(gevent.greenlet.Greenlet):
@@ -181,22 +175,11 @@ def dump_stacks():
 
 
 def main():
-    parser = argparse.ArgumentParser(description='tendrl Ceph Bridge')
-    parser.add_argument('--debug', dest='debug', action='store_true',
-                        default=False, help='print log to stdout')
-
-    args = parser.parse_args()
-    if args.debug:
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(logging.Formatter(tendrl.log.FORMAT))
-        log.addHandler(handler)
-
-    if manhole is not None:
-        # Enable manhole for debugging.  Use oneshot mode
-        # for gevent compatibility
-        manhole.cry = lambda message: log.info("MANHOLE: %s" % message)
-        manhole.install(oneshot_on=signal.SIGUSR1)
-
+    argv = sys.argv
+    argv = [] if argv is None else argv
+    log.setup_logging()
+    config.parse_args(argv)
+    logging.setup(config.CONF, "ceph_bridge")
     m = Manager()
     m.start()
 

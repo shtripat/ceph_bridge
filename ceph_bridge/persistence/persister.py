@@ -4,14 +4,15 @@ import gevent.event
 import gevent.greenlet
 import gevent.queue
 
+
 try:
     import msgpack
 except ImportError:
     msgpack = None
 
-from tendrl.ceph_bridge.log import log
-from tendrl.ceph_bridge.manager import config
-from tendrl.ceph_bridge.persistence.sync_objects import SyncObject
+from ceph_bridge.log import log
+from ceph_bridge.manager import config
+from ceph_bridge.persistence.sync_objects import SyncObject
 
 
 CLUSTER_MAP_RETENTION = datetime.timedelta(

@@ -1,8 +1,6 @@
-
 from glob import glob
 import hashlib
 import json
-import msgpack
 import os
 import re
 import socket
@@ -10,6 +8,8 @@ import struct
 import subprocess
 import tempfile
 import time
+
+import msgpack
 
 # Note: do not import ceph modules at this scope, otherwise this module won't
 # be able to cleanly talk to us about systems where ceph isn't installed yet.
