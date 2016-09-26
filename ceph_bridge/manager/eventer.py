@@ -1,14 +1,16 @@
-import uuid
 from collections import defaultdict
+import uuid
 
 import gevent.event
 import gevent.greenlet
+
+
 from ceph_bridge.persistence.event import ERROR
 from ceph_bridge.persistence.event import Event
 from ceph_bridge.persistence.event import INFO
 from ceph_bridge.persistence.event import RECOVERY
-from ceph_bridge.persistence.event import WARNING
 from ceph_bridge.persistence.event import severity_str
+from ceph_bridge.persistence.event import WARNING
 
 from ceph_bridge.gevent_util import nosleep
 from ceph_bridge.log import log

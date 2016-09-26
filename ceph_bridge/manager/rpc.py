@@ -19,8 +19,8 @@ from ceph_bridge.types import OSD_MAP
 from ceph_bridge.types import OsdMap
 from ceph_bridge.types import POOL
 from ceph_bridge.types import SERVER
-from ceph_bridge.types import SYNC_OBJECT_STR_TYPE
 from ceph_bridge.types import ServiceId
+from ceph_bridge.types import SYNC_OBJECT_STR_TYPE
 
 
 class RpcInterface(object):

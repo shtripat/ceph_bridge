@@ -9,13 +9,13 @@ attention to individual hosts with no regard to the relations between them.
 
 # The type name for hosts and osds in the CRUSH map (if users have their
 # own crush map they may have changed this), Ceph defaults are 'host' and 'osd'
+from collections import defaultdict
 import datetime
+from dateutil import tz
 import json
 import logging
-from collections import defaultdict
 
 import gevent
-from dateutil import tz
 from gevent import event
 from gevent import greenlet
 

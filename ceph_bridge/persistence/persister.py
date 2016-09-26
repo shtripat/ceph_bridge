@@ -1,9 +1,9 @@
 import datetime
-
+from etcdobj import Server as etcd_server
 import gevent.event
 import gevent.greenlet
 import gevent.queue
-from etcdobj import Server as etcd_server
+
 
 try:
     import msgpack

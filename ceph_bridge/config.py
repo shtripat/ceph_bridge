@@ -8,6 +8,7 @@ from ceph_bridge import version
 
 CONF = cfg.CONF
 
+
 def parse_args(argv=None, usage=None, default_config_files=None):
 
     CONF(

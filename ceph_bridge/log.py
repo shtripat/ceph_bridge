@@ -11,5 +11,4 @@ def setup_logging():
     config.CONF.set_default("log_dir", default="/var/log/tendrl/")
     config.CONF.set_default("log_file", default="tendrl_ceph_bridge.log")
     config.CONF.set_default("logging_default_format_string",
-                     default=logging_format)
-
+                            default=logging_format)

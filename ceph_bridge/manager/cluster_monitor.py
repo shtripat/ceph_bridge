@@ -7,9 +7,9 @@ from pytz import utc
 
 from ceph_bridge import ceph
 from ceph_bridge import config
-from ceph_bridge import log
 from ceph_bridge.gevent_util import nosleep
 from ceph_bridge.gevent_util import nosleep_mgr
+from ceph_bridge import log
 from ceph_bridge.manager.crush_node_request_factory \
     import CrushNodeRequestFactory
 from ceph_bridge.manager.crush_request_factory \
@@ -30,6 +30,8 @@ from ceph_bridge.util import now
 FAVORITE_TIMEOUT_FACTOR = int(config.get('bridge', 'favorite_timeout_factor'))
 
 LOG = log.g
+
+
 class ClusterUnavailable(Exception):
     pass
 

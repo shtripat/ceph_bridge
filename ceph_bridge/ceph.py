@@ -1,3 +1,4 @@
+from glob import glob
 import hashlib
 import json
 import os
@@ -7,7 +8,6 @@ import struct
 import subprocess
 import tempfile
 import time
-from glob import glob
 
 import msgpack
 
