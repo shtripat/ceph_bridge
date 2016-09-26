@@ -1,27 +1,26 @@
-import etcd
-import gevent.event
 import json
 import time
 import traceback
-
-from tendrl.ceph_bridge.common.types import CLUSTER
-from tendrl.ceph_bridge.common.types import CRUSH_MAP
-from tendrl.ceph_bridge.common.types import CRUSH_NODE
-from tendrl.ceph_bridge.common.types import CRUSH_RULE
-from tendrl.ceph_bridge.common.types import CRUSH_TYPE
-from tendrl.ceph_bridge.common.types import NotFound
-from tendrl.ceph_bridge.common.types import OSD
-from tendrl.ceph_bridge.common.types import OSD_MAP
-from tendrl.ceph_bridge.common.types import OsdMap
-from tendrl.ceph_bridge.common.types import POOL
-from tendrl.ceph_bridge.common.types import SERVER
-from tendrl.ceph_bridge.common.types import ServiceId
-from tendrl.ceph_bridge.common.types import SYNC_OBJECT_STR_TYPE
-
-from tendrl.ceph_bridge.log import log
-from tendrl.ceph_bridge.manager import config
-
 import uuid
+
+import etcd
+import gevent.event
+
+from ceph_bridge.log import log
+from ceph_bridge.manager import config
+from ceph_bridge.types import CLUSTER
+from ceph_bridge.types import CRUSH_MAP
+from ceph_bridge.types import CRUSH_NODE
+from ceph_bridge.types import CRUSH_RULE
+from ceph_bridge.types import CRUSH_TYPE
+from ceph_bridge.types import NotFound
+from ceph_bridge.types import OSD
+from ceph_bridge.types import OSD_MAP
+from ceph_bridge.types import OsdMap
+from ceph_bridge.types import POOL
+from ceph_bridge.types import SERVER
+from ceph_bridge.types import SYNC_OBJECT_STR_TYPE
+from ceph_bridge.types import ServiceId
 
 
 class RpcInterface(object):

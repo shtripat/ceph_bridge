@@ -1,7 +1,8 @@
-from ceph_bridge.logging import LOG
-from ceph_bridge.util import memoize
 from collections import defaultdict
 from collections import namedtuple
+
+from ceph_bridge.log import LOG
+from ceph_bridge.util import memoize
 
 CRUSH_RULE_TYPE_REPLICATED = 1
 CRUSH_RULE_TYPE_ERASURE = 3

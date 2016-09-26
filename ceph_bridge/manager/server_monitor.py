@@ -9,9 +9,19 @@ attention to individual hosts with no regard to the relations between them.
 
 # The type name for hosts and osds in the CRUSH map (if users have their
 # own crush map they may have changed this), Ceph defaults are 'host' and 'osd'
+import datetime
+import json
+import logging
+from collections import defaultdict
+
+import gevent
+from dateutil import tz
+from gevent import event
+from gevent import greenlet
+
 from ceph_bridge import ceph
 from ceph_bridge.gevent_util import nosleep
-from ceph_bridge.logging import LOG as tendrl_log
+from ceph_bridge.log import LOG as tendrl_log
 from ceph_bridge.manager import config
 from ceph_bridge.persistence.servers import Server
 from ceph_bridge.persistence.servers import Service
@@ -19,18 +29,6 @@ from ceph_bridge.types import MonMap
 from ceph_bridge.types import OsdMap
 from ceph_bridge.types import ServiceId
 from ceph_bridge.util import now
-
-
-from collections import defaultdict
-import datetime
-from dateutil import tz
-import json
-
-import gevent
-from gevent import event
-from gevent import greenlet
-import logging
-
 
 CRUSH_HOST_TYPE = config.get('bridge', 'crush_host_type')
 CRUSH_OSD_TYPE = config.get('bridge', 'crush_osd_type')

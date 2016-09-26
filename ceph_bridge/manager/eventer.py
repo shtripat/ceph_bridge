@@ -1,27 +1,26 @@
+import uuid
 from collections import defaultdict
+
 import gevent.event
 import gevent.greenlet
+from ceph_bridge.persistence.event import ERROR
+from ceph_bridge.persistence.event import Event
+from ceph_bridge.persistence.event import INFO
+from ceph_bridge.persistence.event import RECOVERY
+from ceph_bridge.persistence.event import WARNING
+from ceph_bridge.persistence.event import severity_str
 
-from tendrl.ceph_bridge.common.db.event import ERROR
-from tendrl.ceph_bridge.common.db.event import Event
-from tendrl.ceph_bridge.common.db.event import INFO
-from tendrl.ceph_bridge.common.db.event import RECOVERY
-from tendrl.ceph_bridge.common.db.event import severity_str
-from tendrl.ceph_bridge.common.db.event import WARNING
-from tendrl.ceph_bridge.common.types import Health
-from tendrl.ceph_bridge.common.types import MDS
-from tendrl.ceph_bridge.common.types import MON
-from tendrl.ceph_bridge.common.types import MonStatus
-from tendrl.ceph_bridge.common.types import OSD
-from tendrl.ceph_bridge.common.types import OsdMap
-from tendrl.ceph_bridge.common.types import ServiceId
-from tendrl.ceph_bridge.gevent_util import nosleep
-from tendrl.ceph_bridge.log import log
-from tendrl.ceph_bridge.manager import config
-from tendrl.ceph_bridge.util import now
-
-import uuid
-
+from ceph_bridge.gevent_util import nosleep
+from ceph_bridge.log import log
+from ceph_bridge.manager import config
+from ceph_bridge.types import Health
+from ceph_bridge.types import MDS
+from ceph_bridge.types import MON
+from ceph_bridge.types import MonStatus
+from ceph_bridge.types import OSD
+from ceph_bridge.types import OsdMap
+from ceph_bridge.types import ServiceId
+from ceph_bridge.util import now
 
 # The tick handler is very cheap (no I/O) so we call
 # it quite frequently.

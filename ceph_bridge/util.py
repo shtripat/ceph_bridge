@@ -1,8 +1,8 @@
 import datetime
 
-from dateutil import tz
 import gevent.event
 import gevent.greenlet
+from dateutil import tz
 
 
 def now():

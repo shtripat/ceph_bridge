@@ -1,34 +1,35 @@
-
 import datetime
+import time
+
 import gevent.event
 import gevent.greenlet
 from pytz import utc
-from tendrl.ceph_bridge.common import ceph
-from tendrl.ceph_bridge.common.types import CRUSH_MAP
-from tendrl.ceph_bridge.common.types import CRUSH_NODE
-from tendrl.ceph_bridge.common.types import MdsMap
-from tendrl.ceph_bridge.common.types import MonMap
-from tendrl.ceph_bridge.common.types import OSD
-from tendrl.ceph_bridge.common.types import OsdMap
-from tendrl.ceph_bridge.common.types import POOL
-from tendrl.ceph_bridge.common.types import SYNC_OBJECT_STR_TYPE
-from tendrl.ceph_bridge.common.types import SYNC_OBJECT_TYPES
-from tendrl.ceph_bridge.gevent_util import nosleep
-from tendrl.ceph_bridge.gevent_util import nosleep_mgr
-from tendrl.ceph_bridge.log import log
-from tendrl.ceph_bridge.manager import config
-from tendrl.ceph_bridge.manager.crush_node_request_factory \
+
+from ceph_bridge import ceph
+from ceph_bridge import config
+from ceph_bridge import log
+from ceph_bridge.gevent_util import nosleep
+from ceph_bridge.gevent_util import nosleep_mgr
+from ceph_bridge.manager.crush_node_request_factory \
     import CrushNodeRequestFactory
-from tendrl.ceph_bridge.manager.crush_request_factory \
+from ceph_bridge.manager.crush_request_factory \
     import CrushRequestFactory
-from tendrl.ceph_bridge.manager.osd_request_factory import OsdRequestFactory
-from tendrl.ceph_bridge.manager.pool_request_factory import PoolRequestFactory
-from tendrl.ceph_bridge.util import now
-import time
+from ceph_bridge.manager.osd_request_factory import OsdRequestFactory
+from ceph_bridge.manager.pool_request_factory import PoolRequestFactory
+from ceph_bridge.types import CRUSH_MAP
+from ceph_bridge.types import CRUSH_NODE
+from ceph_bridge.types import MdsMap
+from ceph_bridge.types import MonMap
+from ceph_bridge.types import OSD
+from ceph_bridge.types import OsdMap
+from ceph_bridge.types import POOL
+from ceph_bridge.types import SYNC_OBJECT_STR_TYPE
+from ceph_bridge.types import SYNC_OBJECT_TYPES
+from ceph_bridge.util import now
 
 FAVORITE_TIMEOUT_FACTOR = int(config.get('bridge', 'favorite_timeout_factor'))
 
-
+LOG = log.g
 class ClusterUnavailable(Exception):
     pass
 
