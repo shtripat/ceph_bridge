@@ -20,9 +20,8 @@ from gevent import event
 from gevent import greenlet
 
 from ceph_bridge import ceph
+from ceph_bridge import config
 from ceph_bridge.gevent_util import nosleep
-from ceph_bridge.log import LOG as tendrl_log
-from ceph_bridge.manager import config
 from ceph_bridge.persistence.servers import Server
 from ceph_bridge.persistence.servers import Service
 from ceph_bridge.types import MonMap
@@ -39,7 +38,7 @@ REBOOT_THRESHOLD = datetime.timedelta(seconds=10)
 
 
 # getChild isn't in 2.6
-log = logging.getLogger('.'.join((tendrl_log.name, 'server_monitor')))
+log = logging.getLogger(__name__)
 
 
 class GrainsNotFound(Exception):
