@@ -13,4 +13,4 @@ from ceph_bridge.tests import base
 class TestCeph_bridge(base.TestCase):
 
     def test_something(self):
-        pass
+        assert True
