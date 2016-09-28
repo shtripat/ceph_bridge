@@ -20,8 +20,8 @@ from gevent import event
 from gevent import greenlet
 
 from ceph_bridge import ceph
-from ceph_bridge.gevent_util import nosleep
 from ceph_bridge import config
+from ceph_bridge.gevent_util import nosleep
 from ceph_bridge.persistence.servers import Server
 from ceph_bridge.persistence.servers import Service
 from ceph_bridge.types import MonMap
