@@ -1,12 +1,12 @@
-from etcdobj import EtcdObj
-from etcdobj import fields
+from tendrl.bridge_common.etcdobj.etcdobj import EtcdObj
+from tendrl.bridge_common.etcdobj import fields
 
 
 class Server(EtcdObj):
     """A table of the servers seen by ServerMonitor, lazily updated
 
     """
-    __name__ = 'raw/ceph/%s/servers/%s'
+    __name__ = 'clusters/ceph/%s/servers/%s'
 
     fsid = fields.StrField("fsid")
     # use fqdn as unique identifier
@@ -28,7 +28,7 @@ class Service(EtcdObj):
     each one is associated with a Server, lazily updated.
 
     """
-    __name__ = 'raw/ceph/%s/services/%s/%s/%s'
+    __name__ = 'clusters/ceph/%s/services/%s/%s/%s'
 
     fsid = fields.StrField("fsid")
     service_type = fields.StrField("service_type")

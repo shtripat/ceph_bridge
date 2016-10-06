@@ -1,13 +1,14 @@
 import logging
 import uuid
 
-from ceph_bridge import ceph
-from ceph_bridge.log import LOG
-from ceph_bridge.types import OsdMap
-from ceph_bridge.types import PgSummary
-from ceph_bridge.types import USER_REQUEST_COMPLETE
-from ceph_bridge.types import USER_REQUEST_SUBMITTED
-from ceph_bridge.util import now
+from tendrl.ceph_bridge import ceph
+from tendrl.ceph_bridge.types import OsdMap
+from tendrl.ceph_bridge.types import PgSummary
+from tendrl.ceph_bridge.types import USER_REQUEST_COMPLETE
+from tendrl.ceph_bridge.types import USER_REQUEST_SUBMITTED
+from tendrl.ceph_bridge.util import now
+
+LOG = logging.getLogger(__name__)
 
 
 class PublishError(Exception):
@@ -77,8 +78,6 @@ class UserRequestBase(object):
 
         """
         # getChild isn't in 2.6
-        logname = '.'.join((LOG.name, self.__class__.__name__))
-        self.log = logging.getLogger(logname)
         self.requested_at = now()
         self.completed_at = None
 
@@ -178,7 +177,7 @@ class UserRequestBase(object):
 
         """
         self.result = result
-        self.log.info("Request %s JID %s completed with result=%s" %
+        LOG.info("Request %s JID %s completed with result=%s" %
                       (self.id, self.jid, self.result))
         self.jid = None
 
@@ -194,7 +193,7 @@ class UserRequestBase(object):
         assert self.state != self.COMPLETE
         assert self.jid is None
 
-        self.log.info("Request %s completed with error=%s (%s)" %
+        LOG.info("Request %s completed with error=%s (%s)" %
                       (self.id, self.error, self.error_message))
         self.state = self.COMPLETE
         self.completed_at = now()
@@ -233,7 +232,7 @@ class RadosRequest(UserRequest):
         if commands is None:
             commands = self._commands
 
-        self.log.debug("%s._submit: %s/%s" %
+        LOG.debug("%s._submit: %s/%s" %
                        (self.__class__.__name__, self._cluster_name, commands))
         return ceph.rados_command(self.fsid, self._cluster_name, commands)
 
@@ -285,11 +284,11 @@ class OsdMapModifyingRequest(RadosRequest):
 
         ready = osd_map.version >= self._await_version
         if ready:
-            self.log.debug("check passed (%s >= %s)" %
+            LOG.debug("check passed (%s >= %s)" %
                            (osd_map.version, self._await_version))
             self.complete()
         else:
-            self.log.debug("check pending (%s < %s)" %
+            LOG.debug("check pending (%s < %s)" %
                            (osd_map.version, self._await_version))
 
 
@@ -526,7 +525,7 @@ class PgCreatingRequest(OsdMapModifyingRequest):
             }
 
     def on_map(self, sync_type, sync_object):
-        self.log.debug("PgCreatingRequest %s %s" %
+        LOG.debug("PgCreatingRequest %s %s" %
                        (sync_type.str, self._phase))
         if self._phase == self.PG_MAP_WAIT:
             if sync_type == PgSummary:
@@ -542,7 +541,7 @@ class PgCreatingRequest(OsdMapModifyingRequest):
                         pgs_not_creating += count
 
                 self._pg_progress.set_created_pg_count(pgs_not_creating)
-                self.log.debug(
+                LOG.debug(
                     "PgCreatingRequest.on_map: pg_counter=%s/%s (final %s)" % (
                         pgs_not_creating,
                         self._pg_progress.goal,
@@ -550,19 +549,19 @@ class PgCreatingRequest(OsdMapModifyingRequest):
                 )
                 if pgs_not_creating >= self._pg_progress.goal:
                     if self._pg_progress.is_final_block():
-                        self.log.debug(
+                        LOG.debug(
                             "PgCreatingRequest.on_map Creations complete")
                         if self._post_create_commands:
-                            self.log.debug(
+                            LOG.debug(
                                 "PgCreatingRequest.on_map"
                                 " Issuing post-create commands")
                             self._submit(self._post_create_commands)
                             self._phase = self.JID_WAIT
                         else:
-                            self.log.debug("PgCreatingRequest.on_map All done")
+                            LOG.debug("PgCreatingRequest.on_map All done")
                             self.complete()
                     else:
-                        self.log.debug(
+                        LOG.debug(
                             "PgCreatingREQUEST.on_map Issuing more creates")
                         self._pg_progress.advance_goal()
                         # Request another tranche of PGs up to _block_size

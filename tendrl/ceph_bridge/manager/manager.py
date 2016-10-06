@@ -8,21 +8,15 @@ import traceback
 import gevent.event
 import gevent.greenlet
 
-from ceph_bridge import ceph
-from ceph_bridge import config
-from ceph_bridge import log
-from ceph_bridge.manager.cluster_monitor import ClusterMonitor
-from ceph_bridge.manager.eventer import Eventer
-from ceph_bridge.manager.rpc import EtcdThread
-from ceph_bridge.manager.server_monitor import ServerMonitor
-from ceph_bridge.persistence.persister import Persister
+from tendrl.ceph_bridge import ceph
+from tendrl.ceph_bridge.manager.cluster_monitor import ClusterMonitor
+from tendrl.ceph_bridge.manager.eventer import Eventer
+from tendrl.ceph_bridge.manager.rpc import EtcdThread
+from tendrl.ceph_bridge.manager.server_monitor import ServerMonitor
+from tendrl.ceph_bridge.persistence.persister import Persister
 
-LOG = log.LOG
 
-try:
-    import msgpack
-except ImportError:
-    msgpack = None
+LOG = logging.getLogger(__name__)
 
 
 class TopLevelEvents(gevent.greenlet.Greenlet):
@@ -37,7 +31,7 @@ class TopLevelEvents(gevent.greenlet.Greenlet):
         self._complete.set()
 
     def _run(self):
-        log.info("%s running" % self.__class__.__name__)
+        LOG.info("%s running" % self.__class__.__name__)
 
         while not self._complete.is_set():
             data = ceph.heartbeat(heartbeat_type="cluster", discover=True)
@@ -50,7 +44,7 @@ class TopLevelEvents(gevent.greenlet.Greenlet):
                             ] in self._manager.clusters:
                                 self._manager.on_discovery(cluster_data)
                             else:
-                                log.debug(
+                                LOG.debug(
                                     "%s: heartbeat from existing"
                                     " cluster %s" % (
                                         self.__class__.__name__,
@@ -59,14 +53,14 @@ class TopLevelEvents(gevent.greenlet.Greenlet):
                                 )
                         else:
                             # This does not concern us, ignore it
-                            log.debug("TopLevelEvents: ignoring %s" % tag)
+                            LOG.debug("TopLevelEvents: ignoring %s" % tag)
                             pass
                     except Exception:
-                        log.exception(
+                        LOG.exception(
                             "Exception handling message tag=%s" % tag)
             gevent.sleep(3)
 
-        log.info("%s complete" % self.__class__.__name__)
+        LOG.info("%s complete" % self.__class__.__name__)
 
 
 class Manager(object):
@@ -109,7 +103,7 @@ class Manager(object):
         self._expunge(fs_id)
 
     def stop(self):
-        log.info("%s stopping" % self.__class__.__name__)
+        LOG.info("%s stopping" % self.__class__.__name__)
         for monitor in self.clusters.values():
             monitor.stop()
         self._user_request_thread.stop()
@@ -120,11 +114,11 @@ class Manager(object):
         pass
 
     def _recover(self):
-        log.debug("Recovered server")
+        LOG.debug("Recovered server")
         pass
 
     def start(self):
-        log.info("%s starting" % self.__class__.__name__)
+        LOG.info("%s starting" % self.__class__.__name__)
         self._user_request_thread.start()
         self._discovery_thread.start()
         self.persister.start()
@@ -133,7 +127,7 @@ class Manager(object):
         self.servers.start()
 
     def join(self):
-        log.info("%s joining" % self.__class__.__name__)
+        LOG.info("%s joining" % self.__class__.__name__)
         self._user_request_thread.join()
         self._discovery_thread.join()
         self.persister.join()
@@ -143,7 +137,7 @@ class Manager(object):
             monitor.join()
 
     def on_discovery(self, heartbeat_data):
-        log.info("on_discovery: {0}".format(heartbeat_data['fsid']))
+        LOG.info("on_discovery: {0}".format(heartbeat_data['fsid']))
         cluster_monitor = ClusterMonitor(
             heartbeat_data['fsid'],
             heartbeat_data['name'],
@@ -171,22 +165,17 @@ def dump_stacks():
             continue
         if not ob:
             continue
-        log.error(''.join(traceback.format_stack(ob.gr_frame)))
+        LOG.error(''.join(traceback.format_stack(ob.gr_frame)))
 
 
 def main():
-    argv = sys.argv
-    argv = [] if argv is None else argv
-    log.setup_logging()
-    config.parse_args(argv)
-    logging.setup(config.CONF, "ceph_bridge")
     m = Manager()
     m.start()
 
     complete = gevent.event.Event()
 
     def shutdown():
-        log.info("Signal handler: stopping")
+        LOG.info("Signal handler: stopping")
         complete.set()
 
     gevent.signal(signal.SIGTERM, shutdown)

@@ -9,28 +9,31 @@ attention to individual hosts with no regard to the relations between them.
 
 # The type name for hosts and osds in the CRUSH map (if users have their
 # own crush map they may have changed this), Ceph defaults are 'host' and 'osd'
-from collections import defaultdict
 import datetime
-from dateutil import tz
 import json
 import logging
+from collections import defaultdict
 
 import gevent
+from tendrl.ceph_bridge import ceph
+from tendrl.ceph_bridge.config import TendrlConfig
+from tendrl.ceph_bridge.gevent_util import nosleep
+from tendrl.ceph_bridge.types import MonMap
+from tendrl.ceph_bridge.types import OsdMap
+from tendrl.ceph_bridge.types import ServiceId
+from tendrl.ceph_bridge.util import now
+from dateutil import tz
 from gevent import event
 from gevent import greenlet
 
-from ceph_bridge import ceph
-from ceph_bridge import config
-from ceph_bridge.gevent_util import nosleep
-from ceph_bridge.persistence.servers import Server
-from ceph_bridge.persistence.servers import Service
-from ceph_bridge.types import MonMap
-from ceph_bridge.types import OsdMap
-from ceph_bridge.types import ServiceId
-from ceph_bridge.util import now
+from tendrl.ceph_bridge.persistence.servers import Server
+from tendrl.ceph_bridge.persistence.servers import Service
 
-CRUSH_HOST_TYPE = config.get('bridge', 'crush_host_type')
-CRUSH_OSD_TYPE = config.get('bridge', 'crush_osd_type')
+
+config = TendrlConfig()
+
+CRUSH_HOST_TYPE = config.get('ceph_bridge', 'crush_host_type')
+CRUSH_OSD_TYPE = config.get('ceph_bridge', 'crush_osd_type')
 
 # Ignore changes in boot time below this threshold, to avoid mistaking clock
 # adjustments for reboots.
@@ -38,7 +41,7 @@ REBOOT_THRESHOLD = datetime.timedelta(seconds=10)
 
 
 # getChild isn't in 2.6
-log = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
 class GrainsNotFound(Exception):
@@ -159,27 +162,27 @@ class ServerMonitor(greenlet.Greenlet):
         self._contact_period_cache = {}
 
     def _run(self):
-        log.info("Starting %s" % self.__class__.__name__)
+        LOG.info("Starting %s" % self.__class__.__name__)
 
         while not self._complete.is_set():
             data = ceph.heartbeat()
             if data is not None:
                 for tag, s_data in data.iteritems():
                     if tag.startswith("ceph/server"):
-                        log.debug("ServerMonitor got ceph/server message")
+                        LOG.debug("ServerMonitor got ceph/server message")
                         try:
                             self.on_server_heartbeat(s_data['id'], s_data)
                         except Exception:
-                            log.debug(
+                            LOG.debug(
                                 "Message detail: %s" % json.dumps(s_data)
                             )
-                            log.exception(
+                            LOG.exception(
                                 "Error handling ceph/server"
                                 " message from %s" % s_data['id']
                             )
             gevent.sleep(10)
 
-        log.info("Completed %s" % self.__class__.__name__)
+        LOG.info("Completed %s" % self.__class__.__name__)
 
     def get_hostname_to_osds(self, osd_map):
         """Map 'hostname' to OSD: hostname in this context actually means
@@ -188,7 +191,7 @@ class ServerMonitor(greenlet.Greenlet):
 
         In a default Ceph deployment this will indeed be the hostname, but
 
-        a logical server can have multiple CRUSH nodes with arbitrary names.
+        a LOGical server can have multiple CRUSH nodes with arbitrary names.
 
         """
         osd_tree = osd_map['tree']
@@ -234,7 +237,7 @@ class ServerMonitor(greenlet.Greenlet):
         if len(host_to_osd) == 0:
             # A handy cue to debugging, in case CRUSH_[HOST|OSD]_TYPE are
             # set wrongly or somesuch
-            log.debug("Warning: failed to process CRUSH host->osd mapping")
+            LOG.debug("Warning: failed to process CRUSH host->osd mapping")
 
         return host_to_osd
 
@@ -250,7 +253,7 @@ class ServerMonitor(greenlet.Greenlet):
         self.fsid_services[service_state.fsid].append(service_state)
 
     def forget_service(self, service_state):
-        log.info("Removing record of service %s" % (service_state,))
+        LOG.info("Removing record of service %s" % (service_state,))
         self.fsid_services[service_state.fsid].remove(service_state)
         del self.services[service_state.id]
         if service_state.server_state:
@@ -268,10 +271,10 @@ class ServerMonitor(greenlet.Greenlet):
         :param osd_map: The data from an OsdMap sync object
 
         """
-        log.debug("ServerMonitor.on_osd_map: epoch %s" % osd_map['epoch'])
+        LOG.debug("ServerMonitor.on_osd_map: epoch %s" % osd_map['epoch'])
 
         hostname_to_osds = self.get_hostname_to_osds(osd_map)
-        log.debug(
+        LOG.debug(
             "ServerMonitor.on_osd_map: got service"
             " data for %s servers" % len(hostname_to_osds)
         )
@@ -299,7 +302,7 @@ class ServerMonitor(greenlet.Greenlet):
                         pass
 
             if crush_alias_to:
-                log.info(
+                LOG.info(
                     "'{0}' is a CRUSH alias to {1}".format(
                         hostname, crush_alias_to)
                 )
@@ -403,7 +406,7 @@ class ServerMonitor(greenlet.Greenlet):
         or a server which was known but unmanaged.
 
         """
-        log.debug("ServerMonitor.on_server_heartbeat: %s" % fqdn)
+        LOG.debug("ServerMonitor.on_server_heartbeat: %s" % fqdn)
         new_server = True
         newly_managed_server = False
         try:
@@ -435,12 +438,12 @@ class ServerMonitor(greenlet.Greenlet):
                         )
                         break
                     new_server = False
-                    log.info("Server %s went from unmanaged to managed" % fqdn)
+                    LOG.info("Server %s went from unmanaged to managed" % fqdn)
                     newly_managed_server = True
                 else:
                     # We will go on to treat these as distinct servers even
                     # though they have the same hostname
-                    log.warn("Hostname clash: FQDNs '%s' and"
+                    LOG.warn("Hostname clash: FQDNs '%s' and"
                              " '%s' both have hostname %s" % (
                                  fqdn, server_state.fqdn, hostname
                              ))
@@ -459,7 +462,7 @@ class ServerMonitor(greenlet.Greenlet):
                                managed=True,
                                )
                     )
-                    log.info("Server %s went from unmanaged to managed" % fqdn)
+                    LOG.info("Server %s went from unmanaged to managed" % fqdn)
                     break
 
         boot_time = datetime.datetime.fromtimestamp(
@@ -484,7 +487,7 @@ class ServerMonitor(greenlet.Greenlet):
                            ceph_version=server_heartbeat['ceph_version']
                            )
                 )
-                log.info("Saw server %s for the first time" % server_state)
+                LOG.info("Saw server %s for the first time" % server_state)
                 break
 
         server_state.last_contact = now()
@@ -498,7 +501,7 @@ class ServerMonitor(greenlet.Greenlet):
             break
 
         if server_state.boot_time != boot_time:
-            log.warn("{0} boot time changed, old {1} new {2}".format(
+            LOG.warn("{0} boot time changed, old {1} new {2}".format(
                 server_state.fqdn, server_state.boot_time, boot_time
             ))
             old_boot_time = server_state.boot_time
@@ -515,13 +518,13 @@ class ServerMonitor(greenlet.Greenlet):
             if old_boot_time is not None:
                 # i.e. a reboot, not an unmanaged->managed transition
                 if server_state.boot_time < old_boot_time:
-                    log.warn("Server boot time went backwards")
+                    LOG.warn("Server boot time went backwards")
                 elif server_state.boot_time - old_boot_time < REBOOT_THRESHOLD:
-                    log.warn("Server boot time changed, but only a little")
+                    LOG.warn("Server boot time changed, but only a little")
                 else:
                     # A substantial forward change in boot time, that's a
                     # reboot: emit a user visible event
-                    log.warn("{0} rebooted!".format(fqdn))
+                    LOG.warn("{0} rebooted!".format(fqdn))
                     self._eventer.on_reboot(server_state, False)
 
         if server_state.ceph_version != server_heartbeat['ceph_version']:
@@ -570,7 +573,7 @@ class ServerMonitor(greenlet.Greenlet):
         ) ^ seen_id_tuples:
             service_state = self.services[unseen_id_tuple]
             if service_state.running:
-                log.info(
+                LOG.info(
                     "Service %s stopped on server %s" % (
                         service_state, server_state)
                 )
@@ -584,14 +587,14 @@ class ServerMonitor(greenlet.Greenlet):
     def _register_service(
             self, server_state,
             service_id, running, status, fsid, fqdn):
-        log.debug("ServerMonitor._register_service: %s" % (service_id,))
+        LOG.debug("ServerMonitor._register_service: %s" % (service_id,))
         try:
             service_state = self.services[service_id]
         except KeyError:
-            log.info("Saw service %s for the first time" % (service_id,))
+            LOG.info("Saw service %s for the first time" % (service_id,))
             service_state = ServiceState(*service_id)
             self.inject_service(service_state, server_state.fqdn)
-            log.debug("Creating service %s" % service_state.service_id)
+            LOG.debug("Creating service %s" % service_state.service_id)
             self._persister.create_service(Service(
                 fsid=service_state.fsid,
                 service_type=service_state.service_type,
@@ -603,22 +606,22 @@ class ServerMonitor(greenlet.Greenlet):
 
         if running != service_state.running:
             if running:
-                log.info("Service %s started" % service_state)
+                LOG.info("Service %s started" % service_state)
                 service_state.running = True
             else:
-                log.info("Service %s stopped" % service_state)
+                LOG.info("Service %s stopped" % service_state)
                 service_state.running = False
 
         if status != service_state.status:
             # This usually means the mon status object has changed, we'll
             # get one of these from each up mon every time the mon cluster
             # state changes.
-            log.info("Service %s status update" % service_state)
+            LOG.info("Service %s status update" % service_state)
             service_state.status = status
 
         if service_state.server_state != server_state:
             old_server_state = service_state.server_state
-            log.info("Associated service %s with server"
+            LOG.info("Associated service %s with server"
                      " %s (was %s)" % (
                          service_id,
                          server_state, old_server_state
@@ -631,13 +634,13 @@ class ServerMonitor(greenlet.Greenlet):
 
             if old_server_state.managed is False and not\
                old_server_state.services:
-                log.info("Expunging stale server "
+                LOG.info("Expunging stale server "
                          "record {0}".format(old_server_state.fqdn)
                          )
                 del self.servers[old_server_state.fqdn]
                 # TODO(rohan) Implement delete key/dir in etcdobj
                 # self._persister.delete_server(old_server_state.fqdn)
-        log.debug("Updating service %s" % service_state.service_id)
+        LOG.debug("Updating service %s" % service_state.service_id)
         self._persister.create_service(
             Service(fsid=service_state.fsid,
                     server_fqdn=fqdn,
@@ -685,7 +688,7 @@ class ServerMonitor(greenlet.Greenlet):
         try:
             return self.services[service_id].server_state
         except KeyError:
-            log.warn("No server found for service %s" % (service_id,))
+            LOG.warn("No server found for service %s" % (service_id,))
             return None
 
     def list_by_service(self, service_ids):
@@ -743,7 +746,7 @@ class ServerMonitor(greenlet.Greenlet):
 
     def delete_cluster(self, fsid):
         if fsid not in self.fsid_services:
-            log.info("delete_cluster: No services for FSID %s" % fsid)
+            LOG.info("delete_cluster: No services for FSID %s" % fsid)
             return
 
         for service in self.fsid_services[fsid]:

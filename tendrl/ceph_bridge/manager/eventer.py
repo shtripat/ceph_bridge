@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 import uuid
 
@@ -5,24 +6,27 @@ import gevent.event
 import gevent.greenlet
 
 
-from ceph_bridge.persistence.event import ERROR
-from ceph_bridge.persistence.event import Event
-from ceph_bridge.persistence.event import INFO
-from ceph_bridge.persistence.event import RECOVERY
-from ceph_bridge.persistence.event import severity_str
-from ceph_bridge.persistence.event import WARNING
+from tendrl.ceph_bridge.persistence.event import ERROR
+from tendrl.ceph_bridge.persistence.event import Event
+from tendrl.ceph_bridge.persistence.event import INFO
+from tendrl.ceph_bridge.persistence.event import RECOVERY
+from tendrl.ceph_bridge.persistence.event import severity_str
+from tendrl.ceph_bridge.persistence.event import WARNING
 
-from ceph_bridge.gevent_util import nosleep
-from ceph_bridge.log import log
-from ceph_bridge.manager import config
-from ceph_bridge.types import Health
-from ceph_bridge.types import MDS
-from ceph_bridge.types import MON
-from ceph_bridge.types import MonStatus
-from ceph_bridge.types import OSD
-from ceph_bridge.types import OsdMap
-from ceph_bridge.types import ServiceId
-from ceph_bridge.util import now
+from tendrl.ceph_bridge.gevent_util import nosleep
+from tendrl.ceph_bridge.config import TendrlConfig
+from tendrl.ceph_bridge.types import Health
+from tendrl.ceph_bridge.types import MDS
+from tendrl.ceph_bridge.types import MON
+from tendrl.ceph_bridge.types import MonStatus
+from tendrl.ceph_bridge.types import OSD
+from tendrl.ceph_bridge.types import OsdMap
+from tendrl.ceph_bridge.types import ServiceId
+from tendrl.ceph_bridge.util import now
+
+
+config = TendrlConfig()
+LOG = logging.getLogger(__name__)
 
 # The tick handler is very cheap (no I/O) so we call
 # it quite frequently.
@@ -36,15 +40,15 @@ GRACE_PERIOD = 30
 # How long must a [server|cluster] be out of contact before
 # we generate an event?
 CONTACT_THRESHOLD_FACTOR = int(config.get(
-    'bridge', 'server_timeout_factor'))  # multiple of contact period
+    'ceph_bridge', 'server_timeout_factor'))  # multiple of contact period
 CLUSTER_CONTACT_THRESHOLD = int(config.get(
-    'bridge', 'cluster_contact_threshold'))  # in seconds
+    'ceph_bridge', 'cluster_contact_threshold'))  # in seconds
 
 
 class Eventer(gevent.greenlet.Greenlet):
     """I listen to changes from ClusterMonitor and ServerMonitor, and feed
 
-    events into the event log.  I also periodically check some time-based
+    events into the event LOG.  I also periodically check some time-based
 
     conditions in my on_tick method.
 
@@ -64,7 +68,7 @@ class Eventer(gevent.greenlet.Greenlet):
         self._events = []
 
     def stop(self):
-        log.debug("Eventer stopping")
+        LOG.debug("Eventer stopping")
         self._complete.set()
 
     def _run(self):
@@ -74,7 +78,7 @@ class Eventer(gevent.greenlet.Greenlet):
         while not self._complete.is_set():
             self.on_tick()
             self._complete.wait(TICK_SECONDS)
-        log.debug("Eventer complete")
+        LOG.debug("Eventer complete")
 
     def _emit(self, severity, message, **associations):
         """:param severity: One of the defined serverity values
@@ -87,7 +91,7 @@ class Eventer(gevent.greenlet.Greenlet):
 
         """
         now_utc = now()
-        log.info("Eventer._emit: %s/%s/%s" %
+        LOG.info("Eventer._emit: %s/%s/%s" %
                  (now_utc, severity_str(severity), message))
 
         self._events.append(Event(
@@ -205,7 +209,7 @@ class Eventer(gevent.greenlet.Greenlet):
         which are based on walltime checks)
 
         """
-        log.debug("Eventer.on_tick")
+        LOG.debug("Eventer.on_tick")
 
 #       now_utc = now()
 
@@ -275,7 +279,7 @@ class Eventer(gevent.greenlet.Greenlet):
         server = self._manager.servers.get_by_service(
             ServiceId(fsid, service_type, str(service_id)))
         if server is None:
-            log.warn("No server found for service %s %s" %
+            LOG.warn("No server found for service %s %s" %
                      (service_type, service_id))
         return server.fqdn if server else None
 
@@ -429,7 +433,7 @@ class Eventer(gevent.greenlet.Greenlet):
         :param old: A SyncObject (same type as new)
 
         """
-        log.debug("Eventer.on_sync_object: %s" % sync_type.str)
+        LOG.debug("Eventer.on_sync_object: %s" % sync_type.str)
 
         if old.data is None:
             return

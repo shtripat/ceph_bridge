@@ -1,4 +1,3 @@
-
 class RequestFactory(object):
     """A class to generate UserRequests with commands (e.g. Ceph RADOS admin
 

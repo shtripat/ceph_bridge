@@ -1,10 +1,14 @@
-from ceph_bridge.log import log
-from ceph_bridge.manager.request_factory import RequestFactory
-from ceph_bridge.manager.user_request import OsdMapModifyingRequest
-from ceph_bridge.manager.user_request import PgCreatingRequest
-from ceph_bridge.manager.user_request import PoolCreatingRequest
-from ceph_bridge.types import Config
-from ceph_bridge.types import OsdMap
+import logging
+
+from tendrl.ceph_bridge.manager.request_factory import RequestFactory
+from tendrl.ceph_bridge.manager.user_request import OsdMapModifyingRequest
+from tendrl.ceph_bridge.manager.user_request import PgCreatingRequest
+from tendrl.ceph_bridge.manager.user_request import PoolCreatingRequest
+from tendrl.ceph_bridge.types import Config
+from tendrl.ceph_bridge.types import OsdMap
+
+
+LOG = logging.getLogger(__name__)
 
 # Valid values for the 'var' argument to 'ceph osd pool set'
 POOL_PROPERTIES = ["size", "min_size", "crash_replay_interval",
@@ -106,7 +110,7 @@ class PoolRequestFactory(RequestFactory):
             ret_min_size = min(min_size, size)
         else:
             ret_min_size = size - size / 2
-        log.info('_pool_min_size: size %d, min_size %d, ret %d' %
+        LOG.info('_pool_min_size: size %d, min_size %d, ret %d' %
                  (size, min_size, ret_min_size))
         return ret_min_size
 
@@ -205,8 +209,8 @@ class PoolRequestFactory(RequestFactory):
             post_create_attrs
         ))
 
-        log.debug("Post-create attributes: %s" % post_create_attrs)
-        log.debug("Commands: %s" % commands)
+        LOG.debug("Post-create attributes: %s" % post_create_attrs)
+        LOG.debug("Commands: %s" % commands)
 
         return PoolCreatingRequest(
             "Creating pool '{name}'".format(name=attributes['name']),
