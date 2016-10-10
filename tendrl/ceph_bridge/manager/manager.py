@@ -8,6 +8,7 @@ import gevent.event
 import gevent.greenlet
 
 from tendrl.ceph_bridge import ceph
+from tendrl.ceph_bridge import log
 from tendrl.ceph_bridge.manager.cluster_monitor import ClusterMonitor
 from tendrl.ceph_bridge.manager.eventer import Eventer
 from tendrl.ceph_bridge.manager.rpc import EtcdThread
@@ -168,6 +169,7 @@ def dump_stacks():
 
 
 def main():
+    log.setup_logging()
     m = Manager()
     m.start()
 
