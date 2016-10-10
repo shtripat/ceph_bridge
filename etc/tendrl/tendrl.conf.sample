@@ -15,3 +15,9 @@ log_level = DEBUG
 # Path to log file
 log_path = /var/log/tendrl/ceph_bridge.log
 log_level = DEBUG
+crush_host_type = host
+crush_osd_type = osd
+favorite_timeout_factor = 3
+server_timeout_factor = 3
+cluster_contact_threshold = 60
+cluster_map_retention = 3600

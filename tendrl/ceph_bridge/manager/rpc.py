@@ -404,7 +404,7 @@ class EtcdRPC(object):
 
     def __init__(self, methods):
         self._methods = self._filter_methods(EtcdRPC, self, methods)
-        etcd_kwargs = {'port': config.get("bridge_common", "etcd_port"),
+        etcd_kwargs = {'port': int(config.get("bridge_common", "etcd_port")),
                        'host': config.get("bridge_common", "etcd_connection")}
 
         self.client = etcd.Client(**etcd_kwargs)
