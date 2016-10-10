@@ -22,7 +22,7 @@ setup(
     install_requires=install_requires,
     entry_points={
         'console_scripts': [
-        'tendrl-ceph-bridge = tendrl.ceph_bridge.manager.manager:main'
+            'tendrl-ceph-bridge = tendrl.ceph_bridge.manager.manager:main'
         ]
     }
 )

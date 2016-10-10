@@ -1,12 +1,14 @@
-import logging
 import datetime
+import logging
 import time
 
 import gevent.event
 import gevent.greenlet
+from pytz import utc
+
+
 from tendrl.ceph_bridge import ceph
 from tendrl.ceph_bridge.config import TendrlConfig
-from tendrl.ceph_bridge import LOG
 from tendrl.ceph_bridge.gevent_util import nosleep
 from tendrl.ceph_bridge.gevent_util import nosleep_mgr
 from tendrl.ceph_bridge.manager.crush_node_request_factory \
@@ -24,12 +26,12 @@ from tendrl.ceph_bridge.types import POOL
 from tendrl.ceph_bridge.types import SYNC_OBJECT_STR_TYPE
 from tendrl.ceph_bridge.types import SYNC_OBJECT_TYPES
 from tendrl.ceph_bridge.util import now
-from pytz import utc
 
 from tendrl.ceph_bridge.manager.pool_request_factory import PoolRequestFactory
 
 
 config = TendrlConfig()
+LOG = logging.getLogger(__name__)
 FAVORITE_TIMEOUT_FACTOR = int(config.get('ceph_bridge',
                                          'favorite_timeout_factor'))
 
@@ -95,11 +97,8 @@ class SyncObjects(object):
             if sync_type.cmp(new_version, known_version) > 0:
                 # We are out of date: request an up to date copy
                 LOG.info("Advanced known version %s/%s %s->%s" % (
-                    self._cluster_name,
-                    sync_type.str,
-                    known_version,
-                    new_version)
-                         )
+                    self._cluster_name, sync_type.str, known_version,
+                    new_version))
                 self._known_versions[sync_type] = new_version
             else:
                 LOG.info(

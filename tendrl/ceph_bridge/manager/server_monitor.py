@@ -9,25 +9,26 @@ attention to individual hosts with no regard to the relations between them.
 
 # The type name for hosts and osds in the CRUSH map (if users have their
 # own crush map they may have changed this), Ceph defaults are 'host' and 'osd'
+from collections import defaultdict
 import datetime
 import json
 import logging
-from collections import defaultdict
 
+
+from dateutil import tz
 import gevent
+from gevent import event
+from gevent import greenlet
+
 from tendrl.ceph_bridge import ceph
 from tendrl.ceph_bridge.config import TendrlConfig
 from tendrl.ceph_bridge.gevent_util import nosleep
+from tendrl.ceph_bridge.persistence.servers import Server
+from tendrl.ceph_bridge.persistence.servers import Service
 from tendrl.ceph_bridge.types import MonMap
 from tendrl.ceph_bridge.types import OsdMap
 from tendrl.ceph_bridge.types import ServiceId
 from tendrl.ceph_bridge.util import now
-from dateutil import tz
-from gevent import event
-from gevent import greenlet
-
-from tendrl.ceph_bridge.persistence.servers import Server
-from tendrl.ceph_bridge.persistence.servers import Service
 
 
 config = TendrlConfig()

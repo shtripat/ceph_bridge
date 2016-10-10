@@ -5,8 +5,8 @@ import gevent.event
 import gevent.greenlet
 import gevent.queue
 
-from tendrl.ceph_bridge.config import TendrlConfig
 from tendrl.bridge_common.etcdobj.etcdobj import Server as etcd_server
+from tendrl.ceph_bridge.config import TendrlConfig
 from tendrl.ceph_bridge.persistence.sync_objects import SyncObject
 
 

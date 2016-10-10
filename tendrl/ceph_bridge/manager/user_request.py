@@ -178,7 +178,7 @@ class UserRequestBase(object):
         """
         self.result = result
         LOG.info("Request %s JID %s completed with result=%s" %
-                      (self.id, self.jid, self.result))
+                 (self.id, self.jid, self.result))
         self.jid = None
 
         # This is a default behaviour for UserRequests which don't
@@ -194,7 +194,7 @@ class UserRequestBase(object):
         assert self.jid is None
 
         LOG.info("Request %s completed with error=%s (%s)" %
-                      (self.id, self.error, self.error_message))
+                 (self.id, self.error, self.error_message))
         self.state = self.COMPLETE
         self.completed_at = now()
 
@@ -233,7 +233,7 @@ class RadosRequest(UserRequest):
             commands = self._commands
 
         LOG.debug("%s._submit: %s/%s" %
-                       (self.__class__.__name__, self._cluster_name, commands))
+                  (self.__class__.__name__, self._cluster_name, commands))
         return ceph.rados_command(self.fsid, self._cluster_name, commands)
 
 
@@ -284,12 +284,12 @@ class OsdMapModifyingRequest(RadosRequest):
 
         ready = osd_map.version >= self._await_version
         if ready:
-            LOG.debug("check passed (%s >= %s)" %
-                           (osd_map.version, self._await_version))
+            LOG.debug("check passed (%s >= %s)" % (osd_map.version,
+                                                   self._await_version))
             self.complete()
         else:
-            LOG.debug("check pending (%s < %s)" %
-                           (osd_map.version, self._await_version))
+            LOG.debug("check pending (%s < %s)" % (osd_map.version,
+                                                   self._await_version))
 
 
 class PoolCreatingRequest(OsdMapModifyingRequest):
@@ -525,8 +525,7 @@ class PgCreatingRequest(OsdMapModifyingRequest):
             }
 
     def on_map(self, sync_type, sync_object):
-        LOG.debug("PgCreatingRequest %s %s" %
-                       (sync_type.str, self._phase))
+        LOG.debug("PgCreatingRequest %s %s" % (sync_type.str, self._phase))
         if self._phase == self.PG_MAP_WAIT:
             if sync_type == PgSummary:
                 # Count the PGs in this pool which are not in state 'creating'

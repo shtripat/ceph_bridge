@@ -2,7 +2,6 @@ import gc
 import greenlet
 import logging
 import signal
-import sys
 import traceback
 
 import gevent.event

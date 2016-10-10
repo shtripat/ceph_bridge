@@ -1,5 +1,5 @@
-import logging
 from collections import defaultdict
+import logging
 import uuid
 
 import gevent.event
@@ -13,8 +13,8 @@ from tendrl.ceph_bridge.persistence.event import RECOVERY
 from tendrl.ceph_bridge.persistence.event import severity_str
 from tendrl.ceph_bridge.persistence.event import WARNING
 
-from tendrl.ceph_bridge.gevent_util import nosleep
 from tendrl.ceph_bridge.config import TendrlConfig
+from tendrl.ceph_bridge.gevent_util import nosleep
 from tendrl.ceph_bridge.types import Health
 from tendrl.ceph_bridge.types import MDS
 from tendrl.ceph_bridge.types import MON
