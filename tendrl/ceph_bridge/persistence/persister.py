@@ -1,22 +1,20 @@
 import datetime
-from etcdobj import Server as etcd_server
+import logging
+
 import gevent.event
 import gevent.greenlet
 import gevent.queue
 
+from tendrl.bridge_common.etcdobj.etcdobj import Server as etcd_server
+from tendrl.ceph_bridge.config import TendrlConfig
+from tendrl.ceph_bridge.persistence.sync_objects import SyncObject
 
-try:
-    import msgpack
-except ImportError:
-    msgpack = None
 
-from ceph_bridge.log import log
-from ceph_bridge.manager import config
-from ceph_bridge.persistence.sync_objects import SyncObject
-
+config = TendrlConfig()
+LOG = logging.getLogger(__name__)
 
 CLUSTER_MAP_RETENTION = datetime.timedelta(
-    seconds=int(config.get('bridge', 'cluster_map_retention')))
+    seconds=int(config.get('ceph_bridge', 'cluster_map_retention')))
 
 
 class deferred_call(object):
@@ -65,11 +63,11 @@ class Persister(gevent.greenlet.Greenlet):
                             try:
                                 dc.call_it()
                             except Exception as ex:
-                                log.exception(
+                                LOG.exception(
                                     "Persister exception persisting"
                                     " data: %s" % (dc.fn,)
                                 )
-                                log.exception(ex)
+                                LOG.exception(ex)
                         return defer
                     else:
                         return object.__getattribute__(self, item)
@@ -106,7 +104,7 @@ class Persister(gevent.greenlet.Greenlet):
             self._store.save(event)
 
     def _run(self):
-        log.info("Persister listening")
+        LOG.info("Persister listening")
 
         while not self._complete.is_set():
             gevent.sleep(0.1)
@@ -116,6 +114,6 @@ class Persister(gevent.greenlet.Greenlet):
         self._complete.set()
 
     def get_store(self):
-        etcd_kwargs = {'port': int(config.get("bridge", "etcd_port")),
-                       'host': config.get("bridge", "etcd_connection")}
+        etcd_kwargs = {'port': config.get("bridge_common", "etcd_port"),
+                       'host': config.get("bridge_common", "etcd_connection")}
         return etcd_server(etcd_kwargs=etcd_kwargs)

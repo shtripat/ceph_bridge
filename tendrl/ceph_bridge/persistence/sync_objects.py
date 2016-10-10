@@ -1,5 +1,5 @@
-from etcdobj import EtcdObj
-from etcdobj import fields
+from tendrl.bridge_common.etcdobj.etcdobj import EtcdObj
+from tendrl.bridge_common.etcdobj import fields
 
 
 class SyncObject(EtcdObj):
@@ -8,7 +8,7 @@ class SyncObject(EtcdObj):
     cluster maps.
 
     """
-    __name__ = 'raw/ceph/%s/maps/%s'
+    __name__ = 'clusters/ceph/%s/maps/%s'
 
     fsid = fields.StrField("fsid")
     cluster_name = fields.StrField("cluster_name")

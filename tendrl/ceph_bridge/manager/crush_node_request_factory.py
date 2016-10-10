@@ -1,14 +1,14 @@
 import json
 import logging
 
-from ceph_bridge.manager.request_factory import RequestFactory
-from ceph_bridge.manager.server_monitor import ServiceId
-from ceph_bridge.manager.user_request import OsdMapModifyingRequest
-from ceph_bridge.types import BucketNotEmptyError
-from ceph_bridge.types import OSD
-from ceph_bridge.types import OsdMap
+from tendrl.ceph_bridge.manager.request_factory import RequestFactory
+from tendrl.ceph_bridge.manager.server_monitor import ServiceId
+from tendrl.ceph_bridge.manager.user_request import OsdMapModifyingRequest
+from tendrl.ceph_bridge.types import BucketNotEmptyError
+from tendrl.ceph_bridge.types import OSD
+from tendrl.ceph_bridge.types import OsdMap
 
-log = logging.getLogger('ceph_bridge.crush_node_factory')
+LOG = logging.getLogger(__name__)
 
 
 class CrushNodeRequestFactory(RequestFactory):
@@ -50,7 +50,7 @@ class CrushNodeRequestFactory(RequestFactory):
                 'name'] or bucket_type != current_node['type_name']:
             commands.append(remove_bucket(current_node['name'], None))
 
-        log.info("Updating CRUSH node {c} parent {p} version {v}".format(
+        LOG.info("Updating CRUSH node {c} parent {p} version {v}".format(
             c=commands, p=parent, v=self.osd_map.version))
         message = "Updating CRUSH node in {cluster_name}".format(
             cluster_name=self._cluster_monitor.name)
@@ -171,7 +171,7 @@ def move_osd(hostname, osd_id, parent_name, parent_type):
         # and then figure out it's hostname, we know these things in
         # /api/v2/cluster/fsid/server the osd cephx key has limited
         # access to this info already see ceph/src/mon/MonCap.cc:139
-        # look for this in the log log.debug("Warning: failed to process
+        # look for this in the LOG LOG.debug("Warning: failed to process
         # CRUSH host->osd mapping")
         ('config-key put',
          {'key': 'daemon-private/osd.{id}/v1/calamari/'

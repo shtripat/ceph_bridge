@@ -5,7 +5,7 @@ from collections import defaultdict
 from collections import namedtuple
 
 
-from ceph_bridge.util import memoize
+from tendrl.ceph_bridge.util import memoize
 
 LOG = logging.getLogger(__name__)
 
@@ -14,55 +14,6 @@ CRUSH_RULE_TYPE_ERASURE = 3
 
 
 ServiceId = namedtuple('ServiceId', ['fsid', 'service_type', 'service_id'])
-
-USER_REQUEST_SCHEMA = """{
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "type": "array",
-  "items": {
-    "type": "object",
-    "properties": {
-      "msg": {
-        "type": "object",
-        "properties": {
-          "func": {
-            "type": "string"
-          },
-          "kwargs": {
-            "type": "object",
-            "properties": {}
-          }
-        },
-        "required": [
-          "func",
-          "kwargs"
-        ]
-      },
-      "locked_by": {
-        "type": "string"
-      },
-      "created": {
-        "type": "integer"
-      },
-      "updated": {
-        "type": "integer"
-      },
-      "status": {
-        "type": "string"
-      },
-      "job_id": {
-        "type": "string"
-      }
-    },
-    "required": [
-      "msg",
-      "locked_by",
-      "created",
-      "updated",
-      "status",
-      "job_id"
-    ]
-  }
-}"""
 
 
 class SyncObject(object):

@@ -1,35 +1,41 @@
 import datetime
+import logging
 import time
 
 import gevent.event
 import gevent.greenlet
 from pytz import utc
 
-from ceph_bridge import ceph
-from ceph_bridge import config
-from ceph_bridge.gevent_util import nosleep
-from ceph_bridge.gevent_util import nosleep_mgr
-from ceph_bridge import log
-from ceph_bridge.manager.crush_node_request_factory \
+
+from tendrl.ceph_bridge import ceph
+from tendrl.ceph_bridge.config import TendrlConfig
+from tendrl.ceph_bridge.gevent_util import nosleep
+from tendrl.ceph_bridge.gevent_util import nosleep_mgr
+from tendrl.ceph_bridge.manager.crush_node_request_factory \
     import CrushNodeRequestFactory
-from ceph_bridge.manager.crush_request_factory \
+from tendrl.ceph_bridge.manager.crush_request_factory \
     import CrushRequestFactory
-from ceph_bridge.manager.osd_request_factory import OsdRequestFactory
-from ceph_bridge.manager.pool_request_factory import PoolRequestFactory
-from ceph_bridge.types import CRUSH_MAP
-from ceph_bridge.types import CRUSH_NODE
-from ceph_bridge.types import MdsMap
-from ceph_bridge.types import MonMap
-from ceph_bridge.types import OSD
-from ceph_bridge.types import OsdMap
-from ceph_bridge.types import POOL
-from ceph_bridge.types import SYNC_OBJECT_STR_TYPE
-from ceph_bridge.types import SYNC_OBJECT_TYPES
-from ceph_bridge.util import now
+from tendrl.ceph_bridge.manager.osd_request_factory import OsdRequestFactory
+from tendrl.ceph_bridge.types import CRUSH_MAP
+from tendrl.ceph_bridge.types import CRUSH_NODE
+from tendrl.ceph_bridge.types import MdsMap
+from tendrl.ceph_bridge.types import MonMap
+from tendrl.ceph_bridge.types import OSD
+from tendrl.ceph_bridge.types import OsdMap
+from tendrl.ceph_bridge.types import POOL
+from tendrl.ceph_bridge.types import SYNC_OBJECT_STR_TYPE
+from tendrl.ceph_bridge.types import SYNC_OBJECT_TYPES
+from tendrl.ceph_bridge.util import now
 
-FAVORITE_TIMEOUT_FACTOR = int(config.get('bridge', 'favorite_timeout_factor'))
+from tendrl.ceph_bridge.manager.pool_request_factory import PoolRequestFactory
 
-LOG = log.g
+
+config = TendrlConfig()
+LOG = logging.getLogger(__name__)
+FAVORITE_TIMEOUT_FACTOR = int(config.get('ceph_bridge',
+                                         'favorite_timeout_factor'))
+
+LOG = logging.getLogger(__name__)
 
 
 class ClusterUnavailable(Exception):
@@ -82,7 +88,7 @@ class SyncObjects(object):
         I may choose to initiate RPC to retrieve the map
 
         """
-        log.debug(
+        LOG.debug(
             "SyncObjects.on_version %s/%s" % (sync_type.str, new_version)
         )
         old_version = self.get_version(sync_type)
@@ -90,15 +96,12 @@ class SyncObjects(object):
             known_version = self._known_versions[sync_type]
             if sync_type.cmp(new_version, known_version) > 0:
                 # We are out of date: request an up to date copy
-                log.info("Advanced known version %s/%s %s->%s" % (
-                    self._cluster_name,
-                    sync_type.str,
-                    known_version,
-                    new_version)
-                )
+                LOG.info("Advanced known version %s/%s %s->%s" % (
+                    self._cluster_name, sync_type.str, known_version,
+                    new_version))
                 self._known_versions[sync_type] = new_version
             else:
-                log.info(
+                LOG.info(
                     "on_version: %s is newer than %s" % (
                         new_version, old_version
                     )
@@ -109,13 +112,13 @@ class SyncObjects(object):
             # a while.
             if self._fetching_at[sync_type] is not None:
                 if now() - self._fetching_at[sync_type] < self.FETCH_TIMEOUT:
-                    log.info("Fetch already underway for %s" % sync_type.str)
+                    LOG.info("Fetch already underway for %s" % sync_type.str)
                     return
                 else:
-                    log.warn("Abandoning fetch for %s started at %s" % (
+                    LOG.warn("Abandoning fetch for %s started at %s" % (
                         sync_type.str, self._fetching_at[sync_type]))
 
-            log.info(
+            LOG.info(
                 "on_version: fetching %s/%s , "
                 "currently got %s, know %s" % (
                     sync_type, new_version, old_version, known_version
@@ -124,7 +127,7 @@ class SyncObjects(object):
             return self.fetch(sync_type)
 
     def fetch(self, sync_type):
-        log.debug("SyncObjects.fetch: %s" % sync_type)
+        LOG.debug("SyncObjects.fetch: %s" % sync_type)
 
         self._fetching_at[sync_type] = now()
         # TODO(Rohan) clean up unused 'since' argument
@@ -135,7 +138,7 @@ class SyncObjects(object):
         """:return A SyncObject if this version was new to us, else None
 
         """
-        log.debug(
+        LOG.debug(
             "SyncObjects.on_fetch_complete %s/%s" % (
                 sync_type.str, version)
         )
@@ -147,13 +150,13 @@ class SyncObjects(object):
 
         # Don't store this if we already got something newer
         if sync_type.cmp(version, self.get_version(sync_type)) <= 0:
-            log.warn(
+            LOG.warn(
                 "Ignoring outdated"
                 " update %s/%s" % (sync_type.str, version)
             )
             new_object = None
         else:
-            log.info("Got new version %s/%s" % (sync_type.str, version))
+            LOG.info("Got new version %s/%s" % (sync_type.str, version))
             new_object = self.set_map(sync_type, version, data)
 
         # This might not be the latest: if it's not, send out another fetch
@@ -167,7 +170,7 @@ class SyncObjects(object):
 class ClusterMonitor(gevent.greenlet.Greenlet):
     """Remote management of a Ceph cluster.
 
-    Consumes cluster map logs from the mon cluster, maintains
+    Consumes cluster map LOGs from the mon cluster, maintains
 
     a record of which user requests are ongoing, and uses this
 
@@ -218,7 +221,7 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
         self._ready.wait()
 
     def stop(self):
-        log.info("%s stopping" % self.__class__.__name__)
+        LOG.info("%s stopping" % self.__class__.__name__)
         self._complete.set()
 
     @nosleep
@@ -242,7 +245,7 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
     def _run(self):
 
         self._ready.set()
-        log.debug("ClusterMonitor._run: ready")
+        LOG.debug("ClusterMonitor._run: ready")
 
         while not self._complete.is_set():
 
@@ -250,7 +253,7 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
 
             if data is not None:
                 for tag, c_data in data.iteritems():
-                    log.debug(
+                    LOG.debug(
                         "ClusterMonitor._run.ev:"
                         " %s/tag=%s" % (
                             c_data['id'] if 'id' in c_data else None, tag)
@@ -266,12 +269,12 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
                 except Exception:
                     # Because this is our main event handling loop, swallow
                     # exceptions instead of letting them end the world.
-                    log.exception(
+                    LOG.exception(
                         "Exception handling message with tag %s" % tag)
-                    log.debug("Message content: %s" % data)
+                    LOG.debug("Message content: %s" % data)
             gevent.sleep(4)
 
-        log.info("%s complete" % self.__class__.__name__)
+        LOG.info("%s complete" % self.__class__.__name__)
         self.done.set()
 
     @nosleep
@@ -294,7 +297,7 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
 
         self.update_time = datetime.datetime.utcnow().replace(tzinfo=utc)
 
-        log.debug('Checking for version increments in heartbeat')
+        LOG.debug('Checking for version increments in heartbeat')
         for sync_type in SYNC_OBJECT_TYPES:
             data = self._sync_objects.on_version(
                 sync_type, cluster_data['versions'][sync_type.str]
@@ -346,7 +349,7 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
                 ) else None,
                 now(), sync_object)
         else:
-            log.warn(
+            LOG.warn(
                 "ClusterMonitor.on_sync_object: stale object"
                 " received for %s" % data['type']
             )

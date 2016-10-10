@@ -1,4 +1,5 @@
 import json
+import logging
 import time
 import traceback
 import uuid
@@ -6,21 +7,25 @@ import uuid
 import etcd
 import gevent.event
 
-from ceph_bridge.log import log
-from ceph_bridge.manager import config
-from ceph_bridge.types import CLUSTER
-from ceph_bridge.types import CRUSH_MAP
-from ceph_bridge.types import CRUSH_NODE
-from ceph_bridge.types import CRUSH_RULE
-from ceph_bridge.types import CRUSH_TYPE
-from ceph_bridge.types import NotFound
-from ceph_bridge.types import OSD
-from ceph_bridge.types import OSD_MAP
-from ceph_bridge.types import OsdMap
-from ceph_bridge.types import POOL
-from ceph_bridge.types import SERVER
-from ceph_bridge.types import ServiceId
-from ceph_bridge.types import SYNC_OBJECT_STR_TYPE
+
+from tendrl.ceph_bridge.config import TendrlConfig
+from tendrl.ceph_bridge.types import CLUSTER
+from tendrl.ceph_bridge.types import CRUSH_MAP
+from tendrl.ceph_bridge.types import CRUSH_NODE
+from tendrl.ceph_bridge.types import CRUSH_RULE
+from tendrl.ceph_bridge.types import CRUSH_TYPE
+from tendrl.ceph_bridge.types import NotFound
+from tendrl.ceph_bridge.types import OSD
+from tendrl.ceph_bridge.types import OSD_MAP
+from tendrl.ceph_bridge.types import OsdMap
+from tendrl.ceph_bridge.types import POOL
+from tendrl.ceph_bridge.types import SERVER
+from tendrl.ceph_bridge.types import ServiceId
+from tendrl.ceph_bridge.types import SYNC_OBJECT_STR_TYPE
+
+
+config = TendrlConfig()
+LOG = logging.getLogger(__name__)
 
 
 class RpcInterface(object):
@@ -29,7 +34,7 @@ class RpcInterface(object):
         self._manager = manager
 
     def __getattribute__(self, item):
-        """Wrap functions with logging
+        """Wrap functions with LOGging
 
         """
         if item.startswith('_'):
@@ -38,13 +43,13 @@ class RpcInterface(object):
             attr = object.__getattribute__(self, item)
             if callable(attr):
                 def wrap(*args, **kwargs):
-                    log.debug("RpcInterface >> %s(%s, %s)" %
+                    LOG.debug("RpcInterface >> %s(%s, %s)" %
                               (item, args, kwargs))
                     try:
                         rc = attr(*args, **kwargs)
-                        log.debug("RpcInterface << %s" % item)
+                        LOG.debug("RpcInterface << %s" % item)
                     except Exception:
-                        log.exception("RpcInterface !! %s" % item)
+                        LOG.exception("RpcInterface !! %s" % item)
                         raise
                     return rc
                 return wrap
@@ -137,7 +142,7 @@ class RpcInterface(object):
                     else:
                         obj = getattr(obj, part)
             except (AttributeError, KeyError) as e:
-                log.exception("Exception %s traversing %s: obj=%s" %
+                LOG.exception("Exception %s traversing %s: obj=%s" %
                               (e, path, obj))
                 raise NotFound(object_type, path)
             return obj
@@ -399,8 +404,8 @@ class EtcdRPC(object):
 
     def __init__(self, methods):
         self._methods = self._filter_methods(EtcdRPC, self, methods)
-        etcd_kwargs = {'port': int(config.get("bridge", "etcd_port")),
-                       'host': config.get("bridge", "etcd_connection")}
+        etcd_kwargs = {'port': config.get("bridge_common", "etcd_port"),
+                       'host': config.get("bridge_common", "etcd_connection")}
 
         self.client = etcd.Client(**etcd_kwargs)
         self.bridge_id = str(uuid.uuid4())
@@ -436,15 +441,15 @@ class EtcdRPC(object):
                     if not job['locked_by']:
                         # First lock the job
 
-                        log.info("%s found new job_%s" %
+                        LOG.info("%s found new job_%s" %
                                  (self.__class__.__name__, job['job_id']))
-                        log.debug(job['msg'])
+                        LOG.debug(job['msg'])
                         job['locked_by'] = self.bridge_id
                         job['status'] = "in-progress"
                         job['updated'] = int(time.time())
                         raw_jobs.value = json.dumps(jobs)
                         self.client.write("/rawops/jobs", raw_jobs.value)
-                        log.info("%s Running new job_%s" %
+                        LOG.info("%s Running new job_%s" %
                                  (self.__class__.__name__, job['job_id']))
                         self.__call__(job['msg']['func'],
                                       kwargs=job['msg']['kwargs'])
@@ -452,12 +457,12 @@ class EtcdRPC(object):
                         job['status'] = "complete"
                         raw_jobs.value = json.dumps(jobs)
                         self.client.write("/rawops/jobs", raw_jobs.value)
-                        log.info("%s Completed job_%s" %
+                        LOG.info("%s Completed job_%s" %
                                  (self.__class__.__name__, job['job_id']))
 
                         break
             except Exception as ex:
-                log.error(ex)
+                LOG.error(ex)
             gevent.sleep(1)
 
     def run(self):
@@ -485,7 +490,7 @@ class EtcdThread(gevent.greenlet.Greenlet):
         self._server = EtcdRPC(RpcInterface(manager))
 
     def stop(self):
-        log.info("%s stopping" % self.__class__.__name__)
+        LOG.info("%s stopping" % self.__class__.__name__)
 
         self._complete.set()
         if self._server:
@@ -495,10 +500,10 @@ class EtcdThread(gevent.greenlet.Greenlet):
 
         while not self._complete.is_set():
             try:
-                log.info("%s run..." % self.__class__.__name__)
+                LOG.info("%s run..." % self.__class__.__name__)
                 self._server.run()
             except Exception:
-                log.error(traceback.format_exc())
+                LOG.error(traceback.format_exc())
                 self._complete.wait(self.EXCEPTION_BACKOFF)
 
-        log.info("%s complete..." % self.__class__.__name__)
+        LOG.info("%s complete..." % self.__class__.__name__)
