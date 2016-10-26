@@ -1,0 +1,13 @@
+[Unit]
+Description=Tendrl Ceph Daemon to Manage ceph tasks
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/tendrl-ceph-bridge
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
