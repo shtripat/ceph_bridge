@@ -9,7 +9,7 @@ BuildArch: noarch
 Summary: Tendrl bridge for Ceph Storage
 Source0: %{pkg_name}-%{pkg_version}.tar.gz
 Group:   Applications/System
-License: GPLv2+
+License: LGPL2.1
 Url: https://github.com/Tendrl/ceph_bridge
 
 Requires: python-etcd >= 0.4.3

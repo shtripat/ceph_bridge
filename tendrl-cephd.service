@@ -1,5 +1,6 @@
 [Unit]
-Description=Tendrl Ceph Daemon to Manage ceph tasks
+Description=
+Tendrl ceph daemon to manage ceph storage system
 
 [Service]
 Type=simple
