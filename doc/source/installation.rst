@@ -48,7 +48,7 @@ enviroment which we have created during installation of *bridge common*.
 4. Create config file::
 
     $ cp etc/tendrl/tendrl.conf.sample /etc/tendrl/tendrl.conf
-    $ cp etc/tendrl/logging.yaml.timedrotation.sample /etc/tendrl/ceph_bridge_logging.yaml
+    $ cp etc/logging.yaml.timedrotation.sample /etc/tendrl/ceph_bridge_logging.yaml
 
 5. Edit ``/etc/tendrl/tendrl.conf`` as below
 
