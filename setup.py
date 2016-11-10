@@ -2,8 +2,8 @@ from setuptools import find_packages
 from setuptools import setup
 
 setup(
-    name="tendrl_ceph_bridge",
-    version="0.1",
+    name="tendrl-ceph-bridge",
+    version="0.0.1",
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*",
                                     "tests"]),
     namespace_packages=['tendrl'],
