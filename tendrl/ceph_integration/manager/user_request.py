@@ -1,12 +1,12 @@
 import logging
 import uuid
 
-from tendrl.ceph_bridge import ceph
-from tendrl.ceph_bridge.types import OsdMap
-from tendrl.ceph_bridge.types import PgSummary
-from tendrl.ceph_bridge.types import USER_REQUEST_COMPLETE
-from tendrl.ceph_bridge.types import USER_REQUEST_SUBMITTED
-from tendrl.ceph_bridge.util import now
+from tendrl.ceph_integration import ceph
+from tendrl.ceph_integration.types import OsdMap
+from tendrl.ceph_integration.types import PgSummary
+from tendrl.ceph_integration.types import USER_REQUEST_COMPLETE
+from tendrl.ceph_integration.types import USER_REQUEST_SUBMITTED
+from tendrl.ceph_integration.util import now
 
 LOG = logging.getLogger(__name__)
 

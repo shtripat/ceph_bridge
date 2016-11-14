@@ -5,7 +5,7 @@ from collections import defaultdict
 from collections import namedtuple
 
 
-from tendrl.ceph_bridge.util import memoize
+from tendrl.ceph_integration.util import memoize
 
 LOG = logging.getLogger(__name__)
 

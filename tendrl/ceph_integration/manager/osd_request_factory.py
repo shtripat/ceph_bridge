@@ -1,9 +1,9 @@
-from tendrl.ceph_bridge.manager.request_factory import RequestFactory
-from tendrl.ceph_bridge.manager.user_request import OsdMapModifyingRequest
-from tendrl.ceph_bridge.manager.user_request import RadosRequest
-from tendrl.ceph_bridge.types import OSD_FLAGS
-from tendrl.ceph_bridge.types import OSD_IMPLEMENTED_COMMANDS
-from tendrl.ceph_bridge.types import OsdMap
+from tendrl.ceph_integration.manager.request_factory import RequestFactory
+from tendrl.ceph_integration.manager.user_request import OsdMapModifyingRequest
+from tendrl.ceph_integration.manager.user_request import RadosRequest
+from tendrl.ceph_integration.types import OSD_FLAGS
+from tendrl.ceph_integration.types import OSD_IMPLEMENTED_COMMANDS
+from tendrl.ceph_integration.types import OsdMap
 
 
 class OsdRequestFactory(RequestFactory):

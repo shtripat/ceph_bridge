@@ -9,7 +9,7 @@ def extract_requirements(filename):
 install_requires = extract_requirements('requirements.txt')
 
 setup(
-    name="tendrl_ceph_bridge",
+    name="tendrl_ceph_integration",
     version="0.1",
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*",
                                     "tests"]),
@@ -22,7 +22,7 @@ setup(
     install_requires=install_requires,
     entry_points={
         'console_scripts': [
-            'tendrl-ceph-bridge = tendrl.ceph_bridge.manager.manager:main'
+            'tendrl-ceph-integration = tendrl.ceph_integration.manager.manager:main'
         ]
     }
 )
