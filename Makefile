@@ -1,5 +1,5 @@
 # store the current working directory
-NAME = tendrl-ceph-bridge
+NAME = tendrl-ceph-integration
 VERSION=0.0.1
 
 all: srpm

@@ -1,11 +1,11 @@
-Name: tendrl-ceph-bridge
+Name: tendrl-ceph-integration
 Version: 0.0.1
 Release: 1%{?dist}
 BuildArch: noarch
 Summary: Tendrl bridge for Ceph Storage
 Source0: %{name}-%{version}.tar.gz
 License: LGPLv2+
-URL: https://github.com/Tendrl/ceph_bridge
+URL: https://github.com/Tendrl/ceph_integration
 
 BuildRequires: python2-devel
 BuildRequires: pytest
@@ -48,7 +48,7 @@ install -p -D -m 0644 systemd/tendrl-cephd.service $RPM_BUILD_ROOT%{_unitdir}/te
 %systemd_postun_with_restart tendrl-cephd.service
 
 %check
-py.test -v tendrl/ceph_bridge/tests
+py.test -v tendrl/ceph_integration/tests
 
 %files -f INSTALLED_FILES
 %doc README.rst
