@@ -5,9 +5,9 @@ import gevent.event
 import gevent.greenlet
 import gevent.queue
 
-from tendrl.common.etcdobj.etcdobj import Server as etcd_server
 from tendrl.ceph_integration.config import TendrlConfig
 from tendrl.ceph_integration.persistence.sync_objects import SyncObject
+from tendrl.common.etcdobj.etcdobj import Server as etcd_server
 
 
 config = TendrlConfig()

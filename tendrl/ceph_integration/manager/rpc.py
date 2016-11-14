@@ -434,7 +434,7 @@ class EtcdRPC(object):
             raw_jobs = self.client.read("/rawops/jobs")
             jobs = sorted(json.loads(raw_jobs.value),
                           key=lambda k: int(k['updated']))
-            # Pick up the oldest job that is not locked by any other integration
+        # Pick up the oldest job that is not locked by any other integration
             try:
                 for job in jobs:
 

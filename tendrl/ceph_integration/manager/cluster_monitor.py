@@ -15,7 +15,8 @@ from tendrl.ceph_integration.manager.crush_node_request_factory \
     import CrushNodeRequestFactory
 from tendrl.ceph_integration.manager.crush_request_factory \
     import CrushRequestFactory
-from tendrl.ceph_integration.manager.osd_request_factory import OsdRequestFactory
+from tendrl.ceph_integration.manager.osd_request_factory import \
+    OsdRequestFactory
 from tendrl.ceph_integration.types import CRUSH_MAP
 from tendrl.ceph_integration.types import CRUSH_NODE
 from tendrl.ceph_integration.types import MdsMap
@@ -27,7 +28,8 @@ from tendrl.ceph_integration.types import SYNC_OBJECT_STR_TYPE
 from tendrl.ceph_integration.types import SYNC_OBJECT_TYPES
 from tendrl.ceph_integration.util import now
 
-from tendrl.ceph_integration.manager.pool_request_factory import PoolRequestFactory
+from tendrl.ceph_integration.manager.pool_request_factory import \
+    PoolRequestFactory
 
 
 config = TendrlConfig()

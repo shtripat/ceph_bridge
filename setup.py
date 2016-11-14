@@ -21,8 +21,8 @@ setup(
     zip_safe=False,
     install_requires=install_requires,
     entry_points={
-        'console_scripts': [
-            'tendrl-ceph-integration = tendrl.ceph_integration.manager.manager:main'
-        ]
+        'console_scripts': ['tendrl-ceph-integration = '
+                            'tendrl.ceph_integration.manager.manager:main'
+                            ]
     }
 )
