@@ -8,20 +8,20 @@ import etcd
 import gevent.event
 
 
-from tendrl.ceph_bridge.config import TendrlConfig
-from tendrl.ceph_bridge.types import CLUSTER
-from tendrl.ceph_bridge.types import CRUSH_MAP
-from tendrl.ceph_bridge.types import CRUSH_NODE
-from tendrl.ceph_bridge.types import CRUSH_RULE
-from tendrl.ceph_bridge.types import CRUSH_TYPE
-from tendrl.ceph_bridge.types import NotFound
-from tendrl.ceph_bridge.types import OSD
-from tendrl.ceph_bridge.types import OSD_MAP
-from tendrl.ceph_bridge.types import OsdMap
-from tendrl.ceph_bridge.types import POOL
-from tendrl.ceph_bridge.types import SERVER
-from tendrl.ceph_bridge.types import ServiceId
-from tendrl.ceph_bridge.types import SYNC_OBJECT_STR_TYPE
+from tendrl.ceph_integration.config import TendrlConfig
+from tendrl.ceph_integration.types import CLUSTER
+from tendrl.ceph_integration.types import CRUSH_MAP
+from tendrl.ceph_integration.types import CRUSH_NODE
+from tendrl.ceph_integration.types import CRUSH_RULE
+from tendrl.ceph_integration.types import CRUSH_TYPE
+from tendrl.ceph_integration.types import NotFound
+from tendrl.ceph_integration.types import OSD
+from tendrl.ceph_integration.types import OSD_MAP
+from tendrl.ceph_integration.types import OsdMap
+from tendrl.ceph_integration.types import POOL
+from tendrl.ceph_integration.types import SERVER
+from tendrl.ceph_integration.types import ServiceId
+from tendrl.ceph_integration.types import SYNC_OBJECT_STR_TYPE
 
 
 config = TendrlConfig()
@@ -404,11 +404,11 @@ class EtcdRPC(object):
 
     def __init__(self, methods):
         self._methods = self._filter_methods(EtcdRPC, self, methods)
-        etcd_kwargs = {'port': int(config.get("bridge_common", "etcd_port")),
-                       'host': config.get("bridge_common", "etcd_connection")}
+        etcd_kwargs = {'port': int(config.get("common", "etcd_port")),
+                       'host': config.get("common", "etcd_connection")}
 
         self.client = etcd.Client(**etcd_kwargs)
-        self.bridge_id = str(uuid.uuid4())
+        self.integration_id = str(uuid.uuid4())
 
     @staticmethod
     def _filter_methods(cls, self, methods):
@@ -434,7 +434,7 @@ class EtcdRPC(object):
             raw_jobs = self.client.read("/rawops/jobs")
             jobs = sorted(json.loads(raw_jobs.value),
                           key=lambda k: int(k['updated']))
-            # Pick up the oldest job that is not locked by any other bridge
+        # Pick up the oldest job that is not locked by any other integration
             try:
                 for job in jobs:
 
@@ -444,7 +444,7 @@ class EtcdRPC(object):
                         LOG.info("%s found new job_%s" %
                                  (self.__class__.__name__, job['job_id']))
                         LOG.debug(job['msg'])
-                        job['locked_by'] = self.bridge_id
+                        job['locked_by'] = self.integration_id
                         job['status'] = "in-progress"
                         job['updated'] = int(time.time())
                         raw_jobs.value = json.dumps(jobs)

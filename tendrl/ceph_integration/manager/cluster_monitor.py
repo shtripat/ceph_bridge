@@ -7,32 +7,34 @@ import gevent.greenlet
 from pytz import utc
 
 
-from tendrl.ceph_bridge import ceph
-from tendrl.ceph_bridge.config import TendrlConfig
-from tendrl.ceph_bridge.gevent_util import nosleep
-from tendrl.ceph_bridge.gevent_util import nosleep_mgr
-from tendrl.ceph_bridge.manager.crush_node_request_factory \
+from tendrl.ceph_integration import ceph
+from tendrl.ceph_integration.config import TendrlConfig
+from tendrl.ceph_integration.gevent_util import nosleep
+from tendrl.ceph_integration.gevent_util import nosleep_mgr
+from tendrl.ceph_integration.manager.crush_node_request_factory \
     import CrushNodeRequestFactory
-from tendrl.ceph_bridge.manager.crush_request_factory \
+from tendrl.ceph_integration.manager.crush_request_factory \
     import CrushRequestFactory
-from tendrl.ceph_bridge.manager.osd_request_factory import OsdRequestFactory
-from tendrl.ceph_bridge.types import CRUSH_MAP
-from tendrl.ceph_bridge.types import CRUSH_NODE
-from tendrl.ceph_bridge.types import MdsMap
-from tendrl.ceph_bridge.types import MonMap
-from tendrl.ceph_bridge.types import OSD
-from tendrl.ceph_bridge.types import OsdMap
-from tendrl.ceph_bridge.types import POOL
-from tendrl.ceph_bridge.types import SYNC_OBJECT_STR_TYPE
-from tendrl.ceph_bridge.types import SYNC_OBJECT_TYPES
-from tendrl.ceph_bridge.util import now
+from tendrl.ceph_integration.manager.osd_request_factory import \
+    OsdRequestFactory
+from tendrl.ceph_integration.types import CRUSH_MAP
+from tendrl.ceph_integration.types import CRUSH_NODE
+from tendrl.ceph_integration.types import MdsMap
+from tendrl.ceph_integration.types import MonMap
+from tendrl.ceph_integration.types import OSD
+from tendrl.ceph_integration.types import OsdMap
+from tendrl.ceph_integration.types import POOL
+from tendrl.ceph_integration.types import SYNC_OBJECT_STR_TYPE
+from tendrl.ceph_integration.types import SYNC_OBJECT_TYPES
+from tendrl.ceph_integration.util import now
 
-from tendrl.ceph_bridge.manager.pool_request_factory import PoolRequestFactory
+from tendrl.ceph_integration.manager.pool_request_factory import \
+    PoolRequestFactory
 
 
 config = TendrlConfig()
 LOG = logging.getLogger(__name__)
-FAVORITE_TIMEOUT_FACTOR = int(config.get('ceph_bridge',
+FAVORITE_TIMEOUT_FACTOR = int(config.get('ceph_integration',
                                          'favorite_timeout_factor'))
 
 LOG = logging.getLogger(__name__)

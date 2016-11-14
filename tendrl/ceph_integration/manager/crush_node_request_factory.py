@@ -1,12 +1,12 @@
 import json
 import logging
 
-from tendrl.ceph_bridge.manager.request_factory import RequestFactory
-from tendrl.ceph_bridge.manager.server_monitor import ServiceId
-from tendrl.ceph_bridge.manager.user_request import OsdMapModifyingRequest
-from tendrl.ceph_bridge.types import BucketNotEmptyError
-from tendrl.ceph_bridge.types import OSD
-from tendrl.ceph_bridge.types import OsdMap
+from tendrl.ceph_integration.manager.request_factory import RequestFactory
+from tendrl.ceph_integration.manager.server_monitor import ServiceId
+from tendrl.ceph_integration.manager.user_request import OsdMapModifyingRequest
+from tendrl.ceph_integration.types import BucketNotEmptyError
+from tendrl.ceph_integration.types import OSD
+from tendrl.ceph_integration.types import OsdMap
 
 LOG = logging.getLogger(__name__)
 

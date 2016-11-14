@@ -1,5 +1,5 @@
-from tendrl.ceph_bridge.manager.request_factory import RequestFactory
-from tendrl.ceph_bridge.manager.user_request import OsdMapModifyingRequest
+from tendrl.ceph_integration.manager.request_factory import RequestFactory
+from tendrl.ceph_integration.manager.user_request import OsdMapModifyingRequest
 
 
 class CrushRequestFactory(RequestFactory):

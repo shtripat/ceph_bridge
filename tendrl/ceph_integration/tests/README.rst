@@ -4,14 +4,14 @@ Status
 Builds
 ------
 
-.. image:: https://travis-ci.org/Tendrl/ceph_bridge.svg?branch=master
-    :target: https://travis-ci.org/Tendrl/ceph_bridge
+.. image:: https://travis-ci.org/Tendrl/ceph_integration.svg?branch=master
+    :target: https://travis-ci.org/Tendrl/ceph_integration
 
 Code Coverage
 -------------
 
-.. image:: https://coveralls.io/repos/github/Tendrl/ceph_bridge/badge.svg?branch=master
-    :target: https://coveralls.io/github/Tendrl/ceph_bridge?branch=master
+.. image:: https://coveralls.io/repos/github/Tendrl/ceph_integration/badge.svg?branch=master
+    :target: https://coveralls.io/github/Tendrl/ceph_integration?branch=master
 
 
 Testing

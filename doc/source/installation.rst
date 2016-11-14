@@ -16,31 +16,31 @@ from the source.
 Development version from the source
 -----------------------------------
 
-1. Install http://github.com/tendrl/bridge_common from the source code::
+1. Install http://github.com/tendrl/common from the source code::
 
-    $ git clone https://github.com/Tendrl/bridge_common.git
-    $ cd bridge_common
-    $ mkvirtualenv ceph_bridge
+    $ git clone https://github.com/Tendrl/common.git
+    $ cd common
+    $ mkvirtualenv ceph_integration
     $ pip install .
 
-2. Create bridge_common logging config file::
+2. Create common logging config file::
 
-    $ cp etc/samples/logging.yaml.timedrotation.sample /etc/tendrl/ceph_bridge_logging.yaml
+    $ cp etc/samples/logging.yaml.timedrotation.sample /etc/tendrl/ceph_integration_logging.yaml
 
 Note that there are other sample config files for logging shipped with the product
 and could be utilized for logging differently. For example there are config files
 bundeled for syslog and journald logging as well. These could be used similarly as above.
 
-3. Install ceph bridge itself::
+3. Install ceph integration itself::
 
-    $ git clone https://github.com/Tendrl/ceph_bridge.git
-    $ cd ceph_bridge
-    $ workon ceph_bridge
+    $ git clone https://github.com/Tendrl/ceph_integration.git
+    $ cd ceph_integration
+    $ workon ceph_integration
     $ pip install .
 
-Note that we use virtualenvwrapper_ here to activate ``ceph_bridge`` `python
-virtual enviroment`_. This way, we install *ceph bridge* into the same virtual
-enviroment which we have created during installation of *bridge common*.
+Note that we use virtualenvwrapper_ here to activate ``ceph_integration`` `python
+virtual enviroment`_. This way, we install *ceph integration* into the same virtual
+enviroment which we have created during installation of *integration common*.
 
 .. _virtualenvwrapper: https://virtualenvwrapper.readthedocs.io/en/latest/
 .. _`python virtual enviroment`: https://virtualenv.pypa.io/en/stable/
@@ -48,24 +48,24 @@ enviroment which we have created during installation of *bridge common*.
 4. Create config file::
 
     $ cp etc/tendrl/tendrl.conf.sample /etc/tendrl/tendrl.conf
-    $ cp etc/logging.yaml.timedrotation.sample /etc/tendrl/ceph_bridge_logging.yaml
+    $ cp etc/logging.yaml.timedrotation.sample /etc/tendrl/ceph_integration_logging.yaml
 
 5. Edit ``/etc/tendrl/tendrl.conf`` as below
 
-    Set the value of ``log_cfg_path`` under section ``bridge_common``
+    Set the value of ``log_cfg_path`` under section ``common``
 
     ``log_cfg_path = /etc/tendrl/common_logging.yaml``
 
-    Set the value of ``log_cfg_path`` under section ``ceph_bridge``
+    Set the value of ``log_cfg_path`` under section ``ceph_integration``
 
-    ``log_cfg_path = /etc/tendrl/ceph_bridge_logging.yaml``
+    ``log_cfg_path = /etc/tendrl/ceph_integration_logging.yaml``
 
 
 6. Create log dir::
 
     $ mkdir /var/log/tendrl/common
-    $ mkdir /var/log/tendrl/ceph_bridge
+    $ mkdir /var/log/tendrl/ceph_integration
 
 7. Run::
 
-    $ tendrl-ceph-bridge
+    $ tendrl-ceph-integration

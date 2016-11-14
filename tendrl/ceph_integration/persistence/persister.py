@@ -5,16 +5,16 @@ import gevent.event
 import gevent.greenlet
 import gevent.queue
 
-from tendrl.bridge_common.etcdobj.etcdobj import Server as etcd_server
-from tendrl.ceph_bridge.config import TendrlConfig
-from tendrl.ceph_bridge.persistence.sync_objects import SyncObject
+from tendrl.ceph_integration.config import TendrlConfig
+from tendrl.ceph_integration.persistence.sync_objects import SyncObject
+from tendrl.common.etcdobj.etcdobj import Server as etcd_server
 
 
 config = TendrlConfig()
 LOG = logging.getLogger(__name__)
 
 CLUSTER_MAP_RETENTION = datetime.timedelta(
-    seconds=int(config.get('ceph_bridge', 'cluster_map_retention')))
+    seconds=int(config.get('ceph_integration', 'cluster_map_retention')))
 
 
 class deferred_call(object):
@@ -114,6 +114,6 @@ class Persister(gevent.greenlet.Greenlet):
         self._complete.set()
 
     def get_store(self):
-        etcd_kwargs = {'port': int(config.get("bridge_common", "etcd_port")),
-                       'host': config.get("bridge_common", "etcd_connection")}
+        etcd_kwargs = {'port': int(config.get("common", "etcd_port")),
+                       'host': config.get("common", "etcd_connection")}
         return etcd_server(etcd_kwargs=etcd_kwargs)
