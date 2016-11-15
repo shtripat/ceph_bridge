@@ -12,12 +12,12 @@ import time
 from tendrl.common import log
 
 from tendrl.ceph_integration import ceph
-from tendrl.ceph_integration.manager.tendrl_definitions_ceph import \
-    data as def_data
 from tendrl.ceph_integration.manager.cluster_monitor import ClusterMonitor
 from tendrl.ceph_integration.manager.eventer import Eventer
 from tendrl.ceph_integration.manager.rpc import EtcdThread
 from tendrl.ceph_integration.manager.server_monitor import ServerMonitor
+from tendrl.ceph_integration.manager.tendrl_definitions_ceph import \
+    data as def_data
 from tendrl.ceph_integration.manager import utils
 from tendrl.ceph_integration.persistence.persister import Persister
 from tendrl.ceph_integration.persistence.tendrl_context import TendrlContext
