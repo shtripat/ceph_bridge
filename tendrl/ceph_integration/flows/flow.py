@@ -4,8 +4,8 @@ import etcd
 
 from tendrl.ceph_integration.config import TendrlConfig
 from tendrl.ceph_integration.flows import utils
-from tendrl.ceph_integration.manager import utils as manager_utils
 from tendrl.ceph_integration.manager.crud import Crud
+from tendrl.ceph_integration.manager import utils as manager_utils
 
 LOG = logging.getLogger(__name__)
 config = TendrlConfig()
@@ -29,8 +29,10 @@ class Flow(object):
         self.integration_id = manager_utils.get_tendrl_context()
         self.manager = manager
         self.crud = Crud(self.manager)
+        self.fsid = manager_utils.get_fsid()
         self.parameters.update({"manager": self.manager, "crud": self.crud,
-                               'etcd_client': self.etcd_client})
+                               'etcd_client': self.etcd_client,
+                                "fsid": self.fsid})
 
     def run(self):
         post_atom = None

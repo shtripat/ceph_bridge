@@ -19,10 +19,7 @@ from tendrl.ceph_integration.manager.osd_request_factory import \
     OsdRequestFactory
 from tendrl.ceph_integration.types import CRUSH_MAP
 from tendrl.ceph_integration.types import CRUSH_NODE
-from tendrl.ceph_integration.types import MdsMap
-from tendrl.ceph_integration.types import MonMap
 from tendrl.ceph_integration.types import OSD
-from tendrl.ceph_integration.types import OsdMap
 from tendrl.ceph_integration.types import POOL
 from tendrl.ceph_integration.types import SYNC_OBJECT_STR_TYPE
 from tendrl.ceph_integration.types import SYNC_OBJECT_TYPES
@@ -186,7 +183,7 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
 
     """
 
-    def __init__(self, fsid, cluster_name, persister, servers, eventer):
+    def __init__(self, fsid, cluster_name, persister, manager):
         super(ClusterMonitor, self).__init__()
 
         self.fsid = fsid
@@ -194,8 +191,9 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
         self.update_time = datetime.datetime.utcnow().replace(tzinfo=utc)
 
         self._persister = persister
-        self._servers = servers
-        self._eventer = eventer
+        # self._servers = servers
+        # self._eventer = eventer
+        self._manager = manager
 
         # Which mon we are currently using for running requests,
         # identified by minion ID
@@ -309,23 +307,23 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
 
     def inject_sync_object(self, sync_type, version, data):
         sync_type = SYNC_OBJECT_STR_TYPE[sync_type]
-        old_object = self._sync_objects.get(sync_type)
+        # old_object = self._sync_objects.get(sync_type)
         new_object = self._sync_objects.on_fetch_complete(
             sync_type, version, data
         )
 
-        if new_object:
-            # The ServerMonitor is interested in cluster maps
-            if sync_type == OsdMap:
-                self._servers.on_osd_map(data)
-            elif sync_type == MonMap:
-                self._servers.on_mon_map(data)
-            elif sync_type == MdsMap:
-                self._servers.on_mds_map(self.fsid, data)
+        # if new_object:
+        # The ServerMonitor is interested in cluster maps
+        #    if sync_type == OsdMap:
+        #        self._servers.on_osd_map(data)
+        #    elif sync_type == MonMap:
+        #        self._servers.on_mon_map(data)
+        #    elif sync_type == MdsMap:
+        #        self._servers.on_mds_map(self.fsid, data)
 
-            self._eventer.on_sync_object(
-                self.fsid, sync_type, new_object, old_object
-            )
+        #    self._eventer.on_sync_object(
+        #        self.fsid, sync_type, new_object, old_object
+        #    )
 
         return new_object
 
@@ -349,7 +347,7 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
                 new_object.version if isinstance(
                     new_object.version, int
                 ) else None,
-                now(), sync_object)
+                now(), sync_object, self._manager.cluster_id)
         else:
             LOG.warn(
                 "ClusterMonitor.on_sync_object: stale object"

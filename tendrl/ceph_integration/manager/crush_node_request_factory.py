@@ -2,10 +2,8 @@ import json
 import logging
 
 from tendrl.ceph_integration.manager.request_factory import RequestFactory
-from tendrl.ceph_integration.manager.server_monitor import ServiceId
 from tendrl.ceph_integration.manager.user_request import OsdMapModifyingRequest
 from tendrl.ceph_integration.types import BucketNotEmptyError
-from tendrl.ceph_integration.types import OSD
 from tendrl.ceph_integration.types import OsdMap
 
 LOG = logging.getLogger(__name__)
@@ -21,7 +19,7 @@ class CrushNodeRequestFactory(RequestFactory):
         self.osd_map = self._cluster_monitor.get_sync_object(OsdMap)
         # HERE we have access to the cluster_monitor and likely the server
         # monitor
-        self._server_monitor = monitor._servers
+        # self._server_monitor = monitor._servers
         self.fsid = self._cluster_monitor.fsid
 
     def update(self, node_id, attributes):
@@ -123,12 +121,13 @@ class CrushNodeRequestFactory(RequestFactory):
         return commands
 
     def _get_hostname_where_osd_runs(self, osd_id):
-        return self._server_monitor.get_by_service(
-            ServiceId(self.fsid,
-                      OSD,
-                      str(osd_id)
-                      )
-        ).hostname
+        return osd_id
+        # return self._server_monitor.get_by_service(
+        #    ServiceId(self.fsid,
+        #              OSD,
+        #              str(osd_id)
+        #              )
+        # ).hostname
 
 
 def add_bucket(name, bucket_type):

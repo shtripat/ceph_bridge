@@ -81,7 +81,8 @@ class Persister(gevent.greenlet.Greenlet):
                             sync_type,
                             version,
                             when,
-                            data):
+                            data,
+                            cluster_id):
         self._store.save(
             SyncObject(
                 updated=updated,
@@ -90,7 +91,9 @@ class Persister(gevent.greenlet.Greenlet):
                 sync_type=sync_type,
                 version=version,
                 when=when,
-                data=data)
+                data=data,
+                cluster_id=cluster_id
+            )
         )
 
     def _create_server(self, server):

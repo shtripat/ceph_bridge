@@ -13,9 +13,7 @@ from tendrl.common import log
 
 from tendrl.ceph_integration import ceph
 from tendrl.ceph_integration.manager.cluster_monitor import ClusterMonitor
-from tendrl.ceph_integration.manager.eventer import Eventer
 from tendrl.ceph_integration.manager.rpc import EtcdThread
-from tendrl.ceph_integration.manager.server_monitor import ServerMonitor
 from tendrl.ceph_integration.manager.tendrl_definitions_ceph import \
     data as def_data
 from tendrl.ceph_integration.manager import utils
@@ -87,7 +85,7 @@ class Manager(object):
 
     def __init__(self, cluster_id):
         self._complete = gevent.event.Event()
-
+        self.cluster_id = cluster_id
         self._user_request_thread = EtcdThread(self)
         self._discovery_thread = TopLevelEvents(self)
         self.persister = Persister()
@@ -96,11 +94,11 @@ class Manager(object):
         self.clusters = {}
 
         # Generate events on state changes
-        self.eventer = Eventer(self)
+        # self.eventer = Eventer(self)
 
         # Handle all ceph/server messages after cluster is discovered to
         # maintain etcd schema
-        self.servers = ServerMonitor(self.persister, self.eventer)
+        # self.servers = ServerMonitor(self.persister, self.eventer)
         self.register_to_cluster(cluster_id)
 
     def delete_cluster(self, fs_id):
@@ -122,7 +120,7 @@ class Manager(object):
             monitor.stop()
         self._user_request_thread.stop()
         self._discovery_thread.stop()
-        self.eventer.stop()
+        # self.eventer.stop()
 
     def _expunge(self, fsid):
         pass
@@ -136,17 +134,17 @@ class Manager(object):
         self._user_request_thread.start()
         self._discovery_thread.start()
         self.persister.start()
-        self.eventer.start()
+        # self.eventer.start()
 
-        self.servers.start()
+        # self.servers.start()
 
     def join(self):
         LOG.info("%s joining" % self.__class__.__name__)
         self._user_request_thread.join()
         self._discovery_thread.join()
         self.persister.join()
-        self.eventer.join()
-        self.servers.join()
+        # self.eventer.join()
+        # self.servers.join()
         for monitor in self.clusters.values():
             monitor.join()
 
@@ -155,11 +153,10 @@ class Manager(object):
         cluster_monitor = ClusterMonitor(
             heartbeat_data['fsid'],
             heartbeat_data['name'],
-            self.persister, self.servers,
-            self.eventer
+            self.persister, self
         )
         self.clusters[heartbeat_data['fsid']] = cluster_monitor
-
+        utils.set_fsid(heartbeat_data['fsid'])
         # Run before passing on the heartbeat, because otherwise the
         # syncs resulting from the heartbeat might not be received
         # by the monitor.
@@ -173,9 +170,8 @@ class Manager(object):
         self.persister.update_tendrl_context(
             TendrlContext(
                 updated=str(time.time()),
-                sds_version="",
                 node_id=utils.get_node_context(),
-                sds_name="",
+                sds_name="ceph",
                 cluster_id=cluster_id
             )
         )
