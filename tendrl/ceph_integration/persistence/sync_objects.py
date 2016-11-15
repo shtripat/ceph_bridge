@@ -8,7 +8,7 @@ class SyncObject(EtcdObj):
     cluster maps.
 
     """
-    __name__ = 'clusters/ceph/%s/maps/%s'
+    __name__ = 'clusters/%s/maps/%s'
 
     fsid = fields.StrField("fsid")
     cluster_name = fields.StrField("cluster_name")
@@ -17,7 +17,8 @@ class SyncObject(EtcdObj):
     when = fields.StrField("when")
     data = fields.StrField("data")
     updated = fields.StrField("updated")
+    cluster_id = fields.StrField("cluster_id")
 
     def render(self):
-        self.__name__ = self.__name__ % (self.fsid, self.sync_type)
+        self.__name__ = self.__name__ % (self.cluster_id, self.sync_type)
         return super(SyncObject, self).render()

@@ -81,7 +81,8 @@ class Persister(gevent.greenlet.Greenlet):
                             sync_type,
                             version,
                             when,
-                            data):
+                            data,
+                            cluster_id):
         self._store.save(
             SyncObject(
                 updated=updated,
@@ -90,7 +91,9 @@ class Persister(gevent.greenlet.Greenlet):
                 sync_type=sync_type,
                 version=version,
                 when=when,
-                data=data)
+                data=data,
+                cluster_id=cluster_id
+            )
         )
 
     def _create_server(self, server):
@@ -102,6 +105,12 @@ class Persister(gevent.greenlet.Greenlet):
     def _save_events(self, events):
         for event in events:
             self._store.save(event)
+
+    def update_tendrl_context(self, context):
+        self._store.save(context)
+
+    def update_tendrl_definitions(self, definition):
+        self._store.save(definition)
 
     def _run(self):
         LOG.info("Persister listening")
