@@ -7,7 +7,7 @@ class TendrlDefinitions(EtcdObj):
 
     """
     # TODO(rohan) add the definitions in etcd at startup
-    __name__ = '/clusters/%s/tendrl_definitions_ceph'
+    __name__ = '/clusters/%s/definitions/data'
 
     data = fields.StrField("data")
     cluster_id = fields.StrField("cluster_id")
