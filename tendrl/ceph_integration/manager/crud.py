@@ -391,4 +391,3 @@ class Crud(object):
              )
             for ss in result
         ]
-

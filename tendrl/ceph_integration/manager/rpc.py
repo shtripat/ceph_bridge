@@ -29,7 +29,6 @@ class EtcdRPC(object):
         self.integration_id = str(uuid.uuid4())
         self.crud = crud
 
-
     def _process_job(self, raw_job, job_key):
         # Pick up the "new" job that is not locked by any other integration
         if raw_job['status'] == "new" and raw_job["type"] == "sds" and \
