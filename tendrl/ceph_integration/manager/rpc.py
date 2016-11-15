@@ -68,8 +68,11 @@ class EtcdRPC(object):
                 raw_job = json.loads(job.value.decode('utf-8'))
                 try:
                     raw_job, executed = self._process_job(raw_job, job.key)
-                    if "etcd_client" in raw_job:
-                        del raw_job['etcd_client']
+                    if "etcd_client" and "manager" and "crud" in raw_job[
+                        'parameters'].keys():
+                        del raw_job['parameters']["etcd_client"]
+                        del raw_job['parameters']['manager']
+                        del raw_job['parameters']['crud']
 
                 except FlowExecutionFailedError as e:
                     LOG.error("Failed to execute job: %s. Error: %s" % (

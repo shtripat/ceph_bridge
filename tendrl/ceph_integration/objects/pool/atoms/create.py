@@ -1,7 +1,8 @@
 class Create(object):
     def run(self, parameters):
+        fsid = parameters['fsid']
         attrs = dict(name=parameters['Pool.poolname'],
                      pg_num=parameters['Pool.pg_num'],
                      min_size=parameters['Pool.min_size'])
-        # need fsid
-        self.parameters['crud'].create()
+        parameters['crud'].create(fsid, "pool", attrs)
+        return True

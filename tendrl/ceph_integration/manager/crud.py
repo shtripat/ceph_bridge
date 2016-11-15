@@ -36,13 +36,13 @@ class Crud(object):
             attr = object.__getattribute__(self, item)
             if callable(attr):
                 def wrap(*args, **kwargs):
-                    LOG.debug("RpcInterface >> %s(%s, %s)" %
+                    LOG.debug("Crud >> %s(%s, %s)" %
                               (item, args, kwargs))
                     try:
                         rc = attr(*args, **kwargs)
-                        LOG.debug("RpcInterface << %s" % item)
+                        LOG.debug("Crud << %s" % item)
                     except Exception:
-                        LOG.exception("RpcInterface !! %s" % item)
+                        LOG.exception("Crud !! %s" % item)
                         raise
                     return rc
                 return wrap
