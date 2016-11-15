@@ -10,10 +10,9 @@ import yaml
 from tendrl.ceph_integration.config import TendrlConfig
 from tendrl.ceph_integration.flows.flow_execution_exception import \
     FlowExecutionFailedError
+from tendrl.ceph_integration.manager import utils
 from tendrl.common.definitions.validator import \
     DefinitionsSchemaValidator
-
-from tendrl.ceph_integration.manager.crud import Crud
 
 config = TendrlConfig()
 LOG = logging.getLogger(__name__)
@@ -21,13 +20,13 @@ LOG = logging.getLogger(__name__)
 
 class EtcdRPC(object):
 
-    def __init__(self, crud):
+    def __init__(self, manager):
         etcd_kwargs = {'port': int(config.get("common", "etcd_port")),
                        'host': config.get("common", "etcd_connection")}
 
         self.client = etcd.Client(**etcd_kwargs)
-        self.integration_id = str(uuid.uuid4())
-        self.crud = crud
+        self.integration_id = utils.get_tendrl_context()
+        self.manager = manager
 
     def _process_job(self, raw_job, job_key):
         # Pick up the "new" job that is not locked by any other integration
@@ -69,6 +68,9 @@ class EtcdRPC(object):
                 raw_job = json.loads(job.value.decode('utf-8'))
                 try:
                     raw_job, executed = self._process_job(raw_job, job.key)
+                    if "etcd_client" in raw_job:
+                        del raw_job['etcd_client']
+
                 except FlowExecutionFailedError as e:
                     LOG.error("Failed to execute job: %s. Error: %s" % (
                         str(job), str(e)))
@@ -120,7 +122,7 @@ class EtcdRPC(object):
             exec("from %s import %s as the_flow" % (flow_module, kls_name))
             LOG.info("")
             return the_flow(flow_name, job, atoms, pre_run, post_run,
-                            uuid).run()
+                            uuid, self.manager).run()
 
     def extract_flow_details(self, flow_name, definitions):
         namespace = flow_name.split(".flows.")[0]
@@ -142,7 +144,7 @@ class EtcdThread(gevent.greenlet.Greenlet):
     def __init__(self, manager):
         super(EtcdThread, self).__init__()
         self._complete = gevent.event.Event()
-        self._server = EtcdRPC(Crud(manager))
+        self._server = EtcdRPC(manager)
 
     def stop(self):
         LOG.info("%s stopping" % self.__class__.__name__)

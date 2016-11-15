@@ -6,7 +6,7 @@ class Server(EtcdObj):
     """A table of the servers seen by ServerMonitor, lazily updated
 
     """
-    __name__ = 'clusters/ceph/%s/servers/%s'
+    __name__ = 'clusters/%s/servers/%s'
 
     fsid = fields.StrField("fsid")
     # use fqdn as unique identifier
