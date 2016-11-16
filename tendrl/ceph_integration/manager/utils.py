@@ -21,7 +21,7 @@ def get_tendrl_context():
 def set_tendrl_context(cluster_id):
     with open(TENDRL_CONTEXT, 'wb+') as f:
         f.write(cluster_id)
-        LOG.info("Tendrl_context.cluster_id==%s created!" % cluster_id
+        LOG.info("Tendrl_context.cluster_id==%s created!" % cluster_id)
         return cluster_id
 
 
