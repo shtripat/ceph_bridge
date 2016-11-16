@@ -189,8 +189,8 @@ class PoolRequestFactory(RequestFactory):
             )
 
     def create(self, attributes):
-        commands = [('osd pool create', {'pool': attributes[
-                     'name'], 'pg_num': attributes['pg_num']})]
+        commands = [('osd pool create', {'pool': attributes['name'],
+                                         'pg_num': attributes['pg_num']})]
 
         # Calculate appropriate min_size, including default if none given
         req_size = attributes.get('size', 0)

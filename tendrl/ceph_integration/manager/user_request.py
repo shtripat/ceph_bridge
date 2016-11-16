@@ -234,7 +234,7 @@ class RadosRequest(UserRequest):
 
         LOG.debug("%s._submit: %s/%s" %
                   (self.__class__.__name__, self._cluster_name, commands))
-        return ceph.rados_command(self.fsid, self._cluster_name, commands)
+        return ceph.rados_commands(self.fsid, self._cluster_name, commands)
 
 
 class OsdMapModifyingRequest(RadosRequest):
