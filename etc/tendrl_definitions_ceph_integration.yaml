@@ -26,9 +26,9 @@ namespace.tendrl.ceph_integration:
       inputs:
         mandatory:
           - Pool.pool_id
-          - tendrl.node_agent.Tendrl_context.sds_name
-          - tendrl.node_agent.Tendrl_context.sds_version
-          - tendrl.node_agent.Tendrl_context.cluster_id
+          - Tendrl_context.sds_name
+          - Tendrl_context.sds_version
+          - Tendrl_context.cluster_id
       run: tendrl.ceph_integration.flows.flow.Flow
       type: Delete
       uuid: 4ac41d8f-a0cf-420a-b2fe-18761e07f3b9
