@@ -47,10 +47,11 @@ def get_fsid():
 
 
 def set_fsid(fsid):
-    fsid = get_fsid()
-    if fsid is None:
+    current_fsid = get_fsid()
+    if current_fsid is None:
         with open(FSID, 'wb+') as f:
             f.write(fsid)
+            current_fsid = fsid
             LOG.info("Tendrl_context.fsid==%s created!" % fsid)
 
-    return fsid
+    return current_fsid

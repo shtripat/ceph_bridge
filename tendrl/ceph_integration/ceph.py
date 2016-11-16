@@ -348,7 +348,8 @@ def ceph_command(cluster_name, command_args):
     else:
         args = ["ceph"] + command_args
 
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                         stdin=open(os.devnull, "r"))
     stdout, stderr = p.communicate()
     status = p.returncode
 
@@ -377,7 +378,8 @@ def rbd_command(command_args, pool_name=None):
     else:
         args = ["rbd"] + command_args
 
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                         stdin=open(os.devnull, "r"))
     stdout, stderr = p.communicate()
     status = p.returncode
 
@@ -610,6 +612,8 @@ def get_heartbeats():
     # For each admin socket, try to interrogate the service
     for filename in glob("/var/run/ceph/*.asok"):
         try:
+            if "client" in filename:
+                continue
             service_data = service_status(filename)
         except (rados.Error, MonitoringError):
             # Failed to get info for this service, stale socket or
@@ -735,7 +739,9 @@ def cluster_status(cluster_handle, cluster_name):
     fsid = status['fsid']
     mon_epoch = status['monmap']['epoch']
     osd_epoch = status['osdmap']['osdmap']['epoch']
-    mds_epoch = status['mdsmap']['epoch']
+    mds_epoch = None
+    if 'mdsmap' in status:
+        mds_epoch = status['mdsmap']['epoch']
 
     # FIXME: even on a healthy system, 'health detail' contains some statistics
     # that change on their own, such as 'last_updated' and the mon space usage.
