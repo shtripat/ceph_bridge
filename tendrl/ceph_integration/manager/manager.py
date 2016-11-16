@@ -177,7 +177,7 @@ class Manager(object):
         )
 
         self.persister.update_tendrl_definitions(TendrlDefinitions(
-            updated=str(time.time()), data=def_data))
+            updated=str(time.time()), data=def_data, cluster_id=cluster_id))
 
 
 def dump_stacks():
