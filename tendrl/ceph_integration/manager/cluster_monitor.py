@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import time
 
@@ -17,6 +18,7 @@ from tendrl.ceph_integration.manager.crush_request_factory \
     import CrushRequestFactory
 from tendrl.ceph_integration.manager.osd_request_factory import \
     OsdRequestFactory
+from tendrl.ceph_integration.persistence.pools import Pool
 from tendrl.ceph_integration.types import CRUSH_MAP
 from tendrl.ceph_integration.types import CRUSH_NODE
 from tendrl.ceph_integration.types import OSD
@@ -348,6 +350,17 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
                     new_object.version, int
                 ) else None,
                 now(), sync_object, self._manager.cluster_id)
+            if sync_type.str == "osd_map":
+                for raw_pool in json.loads(sync_object.get('pools', [])):
+                    LOG.info("Updating Pool %s" % raw_pool['pool_name'])
+                    pool = Pool(updated=str(time.time()),
+                                cluster_id=self._manager.cluster_id,
+                                pool_id=raw_pool['pool'],
+                                poolname=raw_pool['pool_name'],
+                                pg_num=raw_pool['pg_num'],
+                                min_size=raw_pool['min_size']
+                                )
+                    self._persister.update_pool(pool)
         else:
             LOG.warn(
                 "ClusterMonitor.on_sync_object: stale object"
