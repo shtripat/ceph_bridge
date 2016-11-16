@@ -1,5 +1,4 @@
 import datetime
-import json
 import logging
 import time
 
@@ -351,7 +350,7 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
                 ) else None,
                 now(), sync_object, self._manager.cluster_id)
             if sync_type.str == "osd_map":
-                for raw_pool in json.loads(sync_object.get('pools', [])):
+                for raw_pool in sync_object.get('pools', []):
                     LOG.info("Updating Pool %s" % raw_pool['pool_name'])
                     pool = Pool(updated=str(time.time()),
                                 cluster_id=self._manager.cluster_id,
