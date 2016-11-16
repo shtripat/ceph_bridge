@@ -172,7 +172,8 @@ class Manager(object):
                 updated=str(time.time()),
                 node_id=utils.get_node_context(),
                 sds_name="ceph",
-                cluster_id=cluster_id
+                cluster_id=cluster_id,
+                sds_version=utils.get_sds_version()
             )
         )
 

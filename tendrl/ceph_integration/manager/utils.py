@@ -1,6 +1,7 @@
 import logging
 import os
 import os.path
+import subprocess
 
 LOG = logging.getLogger(__name__)
 TENDRL_CONTEXT = "/etc/tendrl/ceph_integration/tendrl_context"
@@ -55,3 +56,8 @@ def set_fsid(fsid):
             LOG.info("Tendrl_context.fsid==%s created!" % fsid)
 
     return current_fsid
+
+
+def get_sds_version():
+    res = subprocess.check_output(['ceph', '--version'])
+    return res.split()[2].split("-")[0]
