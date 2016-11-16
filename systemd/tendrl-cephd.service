@@ -1,9 +1,9 @@
 [Unit]
-Description=Tendrl ceph daemon to manage ceph storage system
+Description=Tendrl ceph integration to manage ceph storage system
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/tendrl-ceph-bridge
+ExecStart=/usr/bin/tendrl-ceph-integration
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
 Restart=on-failure
