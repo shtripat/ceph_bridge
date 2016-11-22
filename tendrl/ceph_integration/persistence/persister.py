@@ -112,6 +112,9 @@ class Persister(gevent.greenlet.Greenlet):
     def update_tendrl_definitions(self, definition):
         self._store.save(definition)
 
+    def update_pool(self, pool):
+        self._store.save(pool)
+
     def _run(self):
         LOG.info("Persister listening")
 

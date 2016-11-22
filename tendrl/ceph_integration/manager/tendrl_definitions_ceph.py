@@ -15,7 +15,7 @@ namespace.tendrl.ceph_integration:
           - Tendrl_context.sds_name
           - Tendrl_context.sds_version
           - Tendrl_context.cluster_id
-      run: tendrl.ceph_integration.flows.flow.Flow
+      run: tendrl.ceph_integration.flows.create_pool.CreatePool
       type: Create
       uuid: faeab231-69e9-4c9d-b5ef-a67ed057f98b
       version: 1
@@ -27,10 +27,10 @@ namespace.tendrl.ceph_integration:
       inputs:
         mandatory:
           - Pool.pool_id
-          - tendrl.node_agent.Tendrl_context.sds_name
-          - tendrl.node_agent.Tendrl_context.sds_version
-          - tendrl.node_agent.Tendrl_context.cluster_id
-      run: tendrl.ceph_integration.flows.flow.Flow
+          - Tendrl_context.sds_name
+          - Tendrl_context.sds_version
+          - Tendrl_context.cluster_id
+      run: tendrl.ceph_integration.flows.delete_pool.DeletePool
       type: Delete
       uuid: 4ac41d8f-a0cf-420a-b2fe-18761e07f3b9
       version: 1
