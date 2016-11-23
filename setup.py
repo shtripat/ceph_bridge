@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="tendrl-ceph-integration",
-    version="0.0.1",
+    version="1.1",
     packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*",
                                     "tests"]),
     namespace_packages=['tendrl'],
