@@ -20,13 +20,14 @@ LOG = logging.getLogger(__name__)
 
 class EtcdRPC(object):
 
-    def __init__(self, manager):
+    def __init__(self, manager, Etcdthread):
         etcd_kwargs = {'port': int(config.get("common", "etcd_port")),
                        'host': config.get("common", "etcd_connection")}
 
         self.client = etcd.Client(**etcd_kwargs)
         self.integration_id = utils.get_tendrl_context()
         self.manager = manager
+        self.Etcdthread = Etcdthread
 
     def _process_job(self, raw_job, job_key):
         # Pick up the "new" job that is not locked by any other integration
@@ -57,7 +58,7 @@ class EtcdRPC(object):
             return raw_job, False
 
     def _acceptor(self):
-        while True:
+        while not self.Etcdthread._complete.is_set():
             jobs = self.client.read("/queue")
             gevent.sleep(2)
             for job in jobs.children:
@@ -147,7 +148,7 @@ class EtcdThread(gevent.greenlet.Greenlet):
     def __init__(self, manager):
         super(EtcdThread, self).__init__()
         self._complete = gevent.event.Event()
-        self._server = EtcdRPC(manager)
+        self._server = EtcdRPC(manager, self)
 
     def stop(self):
         LOG.info("%s stopping" % self.__class__.__name__)
@@ -162,6 +163,9 @@ class EtcdThread(gevent.greenlet.Greenlet):
             try:
                 LOG.info("%s run..." % self.__class__.__name__)
                 self._server.run()
+            except etcd.EtcdKeyNotFound as ex:
+                LOG.debug("Given key is not present in etcd . %s", ex)
+                self._complete.wait(self.EXCEPTION_BACKOFF)
             except Exception:
                 LOG.error(traceback.format_exc())
                 self._complete.wait(self.EXCEPTION_BACKOFF)
