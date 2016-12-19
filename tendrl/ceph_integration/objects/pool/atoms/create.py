@@ -1,4 +1,7 @@
-class Create(object):
+from tendrl.common.atoms.base_atom import BaseAtom
+
+
+class Create(BaseAtom):
     def run(self, parameters):
         fsid = parameters['fsid']
         attrs = dict(name=parameters['Pool.poolname'],
