@@ -1,10 +1,7 @@
 from mock import MagicMock
 import sys
 sys.modules['tendrl.common.config'] = MagicMock()
-#sys.modules['logging'] = MagicMock()
 from tendrl.ceph_integration.persistence import persister
-#del sys.modules['tendrl.ceph_integration.config']
-#del sys.modules['logging']
 
 
 class Test_Persister(object):

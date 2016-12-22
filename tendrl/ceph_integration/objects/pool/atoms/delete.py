@@ -1,3 +1,5 @@
+from tendrl.ceph_integration.manager.crud import Crud
+from tendrl.ceph_integration.manager import utils as manager_utils
 from tendrl.common.atoms.base_atom import BaseAtom
 
 
@@ -5,8 +7,10 @@ class Delete(BaseAtom):
     def run(self, parameters):
         cluster_id = parameters['Tendrl_context.cluster_id']
         pool_id = parameters['Pool.pool_id']
-        parameters['crud'].delete(
-            parameters['fsid'],
+        fsid = manager_utils.get_fsid()
+        crud = Crud(parameters['manager'])
+        crud.delete(
+            fsid,
             "pool",
             pool_id
         )
