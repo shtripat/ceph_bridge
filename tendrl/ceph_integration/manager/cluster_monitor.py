@@ -343,14 +343,23 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
                 ) else None,
                 now(), sync_object, self._manager.cluster_id)
             if sync_type.str == "osd_map":
+                util_data = self._get_utilization_data()
                 for raw_pool in sync_object.get('pools', []):
                     LOG.info("Updating Pool %s" % raw_pool['pool_name'])
+                    for pool in util_data['pools']:
+                        if pool['name'] == raw_pool['pool_name']:
+                            max_avail = pool['stats']['max_avail']
+                            pool_used = pool['stats']['bytes_used']
+                            pcnt = (pool_used * 100) / (pool_used + max_avail)
                     pool = Pool(updated=str(time.time()),
                                 cluster_id=self._manager.cluster_id,
                                 pool_id=raw_pool['pool'],
                                 poolname=raw_pool['pool_name'],
                                 pg_num=raw_pool['pg_num'],
-                                min_size=raw_pool['min_size']
+                                min_size=raw_pool['min_size'],
+                                used=pool_used,
+                                total=max_avail,
+                                percent_used=pcnt
                                 )
                     self._persister.update_pool(pool)
         else:
@@ -358,6 +367,27 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
                 "ClusterMonitor.on_sync_object: stale object"
                 " received for %s" % data['type']
             )
+
+    def _get_utilization_data(self):
+        from ceph_argparse import json_command
+        import rados
+        cluster_handle = rados.Rados(
+            name=ceph.RADOS_NAME,
+            clustername=self.name,
+            conffile=''
+        )
+        cluster_handle.connect()
+        prefix = 'df'
+        ret, outbuf, outs = json_command(
+            cluster_handle,
+            prefix=prefix,
+            argdict={'format': 'json'},
+            timeout=ceph.RADOS_TIMEOUT
+        )
+        if ret != 0:
+            raise rados.Error(outs)
+        else:
+            return ceph.json_loads_byteified(outbuf)
 
     def _request(self, method, obj_type, *args, **kwargs):
         """Create and submit UserRequest for an apply, create, update or delete.
