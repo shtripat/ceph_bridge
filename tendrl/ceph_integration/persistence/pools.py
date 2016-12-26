@@ -17,7 +17,6 @@ class Pool(EtcdObj):
     pg_num = fields.StrField("pg_num")
     min_size = fields.StrField("min_size")
     used = fields.IntField("used")
-    total = fields.IntField("total")
     percent_used = fields.IntField("percent_used")
 
     def render(self):
