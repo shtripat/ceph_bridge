@@ -1,6 +1,6 @@
-from tendrl.ceph_integration.flows.flow import Flow
+from tendrl.common.flows.base_flow import BaseFlow
 
 
-class DeletePool(Flow):
+class DeletePool(BaseFlow):
     def run(self):
         super(DeletePool, self).run()

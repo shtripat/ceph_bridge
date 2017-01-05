@@ -8,7 +8,6 @@ from pytz import utc
 
 
 from tendrl.ceph_integration import ceph
-from tendrl.ceph_integration.config import TendrlConfig
 from tendrl.ceph_integration.gevent_util import nosleep
 from tendrl.ceph_integration.gevent_util import nosleep_mgr
 from tendrl.ceph_integration.manager.crush_node_request_factory \
@@ -28,12 +27,6 @@ from tendrl.ceph_integration.util import now
 
 from tendrl.ceph_integration.manager.pool_request_factory import \
     PoolRequestFactory
-
-
-config = TendrlConfig()
-LOG = logging.getLogger(__name__)
-FAVORITE_TIMEOUT_FACTOR = int(config.get('ceph_integration',
-                                         'favorite_timeout_factor'))
 
 LOG = logging.getLogger(__name__)
 
