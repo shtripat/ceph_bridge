@@ -14,12 +14,12 @@ from tendrl.ceph_integration.persistence.persister import \
 from tendrl.ceph_integration.persistence.tendrl_context import TendrlContext
 from tendrl.ceph_integration.persistence.tendrl_definitions import \
     TendrlDefinitions
-from tendrl.common.config import TendrlConfig
-from tendrl.common.log import setup_logging
-from tendrl.common.manager.manager import Manager
-from tendrl.common.manager.manager import SyncStateThread
+from tendrl.commons.config import TendrlConfig
+from tendrl.commons.log import setup_logging
+from tendrl.commons.manager.manager import Manager
+from tendrl.commons.manager.manager import SyncStateThread
 
-config = TendrlConfig("ceph_integration", "/etc/tendrl/tendrl.conf")
+config = TendrlConfig("ceph-integration", "/etc/tendrl/tendrl.conf")
 
 LOG = logging.getLogger(__name__)
 
@@ -148,8 +148,8 @@ class CephIntegrationManager(Manager):
 
 def main():
     setup_logging(
-        config.get('ceph_integration', 'log_cfg_path'),
-        config.get('ceph_integration', 'log_level')
+        config.get('ceph-integration', 'log_cfg_path'),
+        config.get('ceph-integration', 'log_level')
     )
     if sys.argv:
         if len(sys.argv) > 1:
