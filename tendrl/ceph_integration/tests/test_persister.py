@@ -1,6 +1,6 @@
 from mock import MagicMock
 import sys
-sys.modules['tendrl.common.config'] = MagicMock()
+sys.modules['tendrl.commons.config'] = MagicMock()
 from tendrl.ceph_integration.persistence import persister
 
 
