@@ -17,7 +17,7 @@ Requires: python-gevent
 Requires: python-greenlet
 Requires: pytz
 Requires: python-msgpack
-Requires: tendrl-common
+Requires: tendrl-commons
 
 %description
 Tendrl bridge for Ceph Storage
