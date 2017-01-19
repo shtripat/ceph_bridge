@@ -13,12 +13,18 @@ from tendrl.ceph_integration.persistence.persister import \
 from tendrl.ceph_integration.persistence.tendrl_context import TendrlContext
 from tendrl.ceph_integration.persistence.tendrl_definitions import \
     TendrlDefinitions
-from tendrl.commons.config import TendrlConfig
+from tendrl.commons.config import load_config
+from tendrl.commons.etcdobj import etcdobj
 from tendrl.commons.log import setup_logging
 from tendrl.commons.manager.manager import Manager
 from tendrl.commons.manager.manager import SyncStateThread
 
-config = TendrlConfig("ceph-integration", "/etc/tendrl/tendrl.conf")
+
+config = load_config(
+    "ceph-integration",
+    "/etc/tendrl/ceph-integration/ceph-integration.conf.yaml"
+)
+
 
 LOG = logging.getLogger(__name__)
 
@@ -72,6 +78,11 @@ class CephIntegrationManager(Manager):
     def __init__(self, cluster_id):
         self._complete = gevent.event.Event()
         self.cluster_id = cluster_id
+        etcd_kwargs = {
+            'port': config['etcd_port'],
+            'host': config["etcd_connection"]
+        }
+        self.etcd_orm = etcdobj.Server(etcd_kwargs=etcd_kwargs)
         super(
             CephIntegrationManager,
             self
@@ -80,7 +91,7 @@ class CephIntegrationManager(Manager):
             cluster_id,
             config,
             CephIntegrationSyncStateThread(self, cluster_id),
-            CephIntegrationEtcdPersister(config),
+            CephIntegrationEtcdPersister(self.etcd_orm),
             "clusters/%s/definitions/data" % cluster_id
         )
         # FSID to ClusterMonitor
@@ -147,8 +158,7 @@ class CephIntegrationManager(Manager):
 
 def main():
     setup_logging(
-        config.get('ceph-integration', 'log_cfg_path'),
-        config.get('ceph-integration', 'log_level')
+        config['log_cfg_path']
     )
 
     cluster_id = utils.get_tendrl_context()

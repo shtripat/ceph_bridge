@@ -4,7 +4,7 @@ namespace.tendrl.ceph_integration:
   flows:
     CreatePool:
       atoms:
-        - tendrl.ceph_integration.objects.Pool.atoms.create
+        - tendrl.ceph_integration.objects.Pool.atoms.create.Create
       help: "Create Ceph Pool"
       enabled: true
       inputs:
@@ -49,7 +49,7 @@ namespace.tendrl.ceph_integration:
       flows:
         DeletePool:
           atoms:
-            - tendrl.ceph_integration.objects.Pool.atoms.delete
+            - tendrl.ceph_integration.objects.Pool.atoms.delete.Delete
           help: "Delete Ceph Pool"
           enabled: true
           inputs:

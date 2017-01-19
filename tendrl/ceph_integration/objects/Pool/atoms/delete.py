@@ -4,18 +4,18 @@ from tendrl.commons.atoms.base_atom import BaseAtom
 
 
 class Delete(BaseAtom):
-    def run(self, parameters):
-        cluster_id = parameters['Tendrl_context.cluster_id']
-        pool_id = parameters['Pool.pool_id']
+    def run(self):
+        cluster_id = self.parameters['Tendrl_context.cluster_id']
+        pool_id = self.parameters['Pool.pool_id']
         fsid = manager_utils.get_fsid()
-        crud = Crud(parameters['manager'])
+        crud = Crud(self.parameters['manager'])
         crud.delete(
             fsid,
             "pool",
             pool_id
         )
 
-        etcd_client = parameters['etcd_client']
+        etcd_client = self.parameters['etcd_orm'].client
         pool_key = "clusters/%s/Pools/%s/deleted" % (cluster_id, pool_id)
         etcd_client.write(pool_key, "True")
 
