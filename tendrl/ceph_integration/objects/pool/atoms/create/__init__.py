@@ -1,9 +1,13 @@
 from tendrl.ceph_integration.manager.crud import Crud
 from tendrl.ceph_integration.manager import utils as manager_utils
-from tendrl.commons.atoms.base_atom import BaseAtom
+from tendrl.ceph_integration import objects
 
 
-class Create(BaseAtom):
+class Create(objects.CephIntegrationBaseAtom):
+    def __init__(self, *args, **kwargs):
+        super(Create, self).__init__(*args, **kwargs)
+        self.obj = objects.pool.Pool
+
     def run(self, parameters):
         fsid = manager_utils.get_fsid()
         attrs = dict(name=parameters['Pool.poolname'],

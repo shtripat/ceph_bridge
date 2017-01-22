@@ -6,12 +6,12 @@ import gevent.event
 import gevent.greenlet
 
 
-from tendrl.ceph_integration.persistence.event import ERROR
-from tendrl.ceph_integration.persistence.event import Event
-from tendrl.ceph_integration.persistence.event import INFO
-from tendrl.ceph_integration.persistence.event import RECOVERY
-from tendrl.ceph_integration.persistence.event import severity_str
-from tendrl.ceph_integration.persistence.event import WARNING
+from tendrl.ceph_integration.manager.event_utils import ERROR
+from tendrl.ceph_integration.manager.event_utils import Event
+from tendrl.ceph_integration.manager.event_utils import INFO
+from tendrl.ceph_integration.manager.event_utils import RECOVERY
+from tendrl.ceph_integration.manager.event_utils import severity_str
+from tendrl.ceph_integration.manager.event_utils import WARNING
 
 from tendrl.ceph_integration.config import TendrlConfig
 from tendrl.ceph_integration.gevent_util import nosleep
@@ -95,7 +95,7 @@ class Eventer(gevent.greenlet.Greenlet):
                  (now_utc, severity_str(severity), message))
 
         self._events.append(Event(
-            id=str(uuid.uuid4()),
+            event_id=str(uuid.uuid4()),
             when=now_utc,
             message=message,
             severity=severity,
