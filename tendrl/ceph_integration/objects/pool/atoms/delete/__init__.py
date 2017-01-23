@@ -1,9 +1,13 @@
 from tendrl.ceph_integration.manager.crud import Crud
 from tendrl.ceph_integration.manager import utils as manager_utils
-from tendrl.commons.atoms.base_atom import BaseAtom
+from tendrl.ceph_integration import objects
 
 
-class Delete(BaseAtom):
+class Delete(objects.CephIntegrationBaseAtom):
+    def __init__(self, *args, **kwargs):
+        super(Delete, self).__init__(*args, **kwargs)
+        self.obj = objects.pool.Pool
+
     def run(self, parameters):
         cluster_id = parameters['Tendrl_context.cluster_id']
         pool_id = parameters['Pool.pool_id']

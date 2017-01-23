@@ -16,7 +16,8 @@ from tendrl.ceph_integration.manager.crush_request_factory \
     import CrushRequestFactory
 from tendrl.ceph_integration.manager.osd_request_factory import \
     OsdRequestFactory
-from tendrl.ceph_integration.persistence.pools import Pool
+from tendrl.ceph_integration.objects.pool import Pool
+from tendrl.ceph_integration.objects.sync_object import SyncObject
 from tendrl.ceph_integration.types import CRUSH_MAP
 from tendrl.ceph_integration.types import CRUSH_NODE
 from tendrl.ceph_integration.types import OSD
@@ -177,18 +178,15 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
 
     """
 
-    def __init__(self, fsid, cluster_name, persister, manager):
+    def __init__(self, fsid, cluster_name):
         super(ClusterMonitor, self).__init__()
 
         self.fsid = fsid
         self.name = cluster_name
         self.update_time = datetime.datetime.utcnow().replace(tzinfo=utc)
 
-        self._persister = persister
         # self._servers = servers
         # self._eventer = eventer
-        self._manager = manager
-
         # Which mon we are currently using for running requests,
         # identified by minion ID
         self._favorite_mon = None
@@ -333,15 +331,16 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
             data['type'], data['version'], sync_object
         )
         if new_object:
-            self._persister.update_sync_object(
-                str(time.time()),
-                self.fsid,
-                self.name,
-                sync_type.str,
+            s_object = SyncObject(
+                self.fsid, self.name, sync_type.str,
                 new_object.version if isinstance(
                     new_object.version, int
-                ) else None,
-                now(), sync_object, self._manager.cluster_id)
+                ) else None, now(), sync_object,
+                str(time.time())
+            )
+            tendrl_ns.central_store_thread.save_syncobject(
+                s_object
+            )
             if sync_type.str == "osd_map":
                 util_data = self._get_utilization_data()
                 for raw_pool in sync_object.get('pools', []):
@@ -350,16 +349,16 @@ class ClusterMonitor(gevent.greenlet.Greenlet):
                         if pool['name'] == raw_pool['pool_name']:
                             pool_used = pool['used']
                             pcnt = pool['pcnt_used']
-                    pool = Pool(updated=str(time.time()),
-                                cluster_id=self._manager.cluster_id,
-                                pool_id=raw_pool['pool'],
+                    pool = Pool(pool_id=raw_pool['pool'],
                                 poolname=raw_pool['pool_name'],
                                 pg_num=raw_pool['pg_num'],
                                 min_size=raw_pool['min_size'],
                                 used=pool_used,
                                 percent_used=pcnt
                                 )
-                    self._persister.update_pool(pool)
+                    tendrl_ns.central_store_thread.save_syncobject(
+                        pool
+                    )
         else:
             LOG.warn(
                 "ClusterMonitor.on_sync_object: stale object"
