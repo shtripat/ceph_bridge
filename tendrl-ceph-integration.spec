@@ -63,5 +63,9 @@ py.test -v tendrl/ceph_integration/tests || :
 %{_sysconfdir}/tendrl/ceph-integration/ceph-integration.conf.yaml
 
 %changelog
-* Wed Oct 26 2016 Timothy Asir Jeyasingh <tjeyasin@redhat.com> - 1.1-1
+* Mon Jan 23 2017 Timothy Asir Jeyasingh <tjeyasin@redhat.com> - 1.1-1
+- Config file changes
+- Import ceph
+
+* Wed Oct 26 2016 Timothy Asir Jeyasingh <tjeyasin@redhat.com> - 0.0.1-1
 - Initial build.
