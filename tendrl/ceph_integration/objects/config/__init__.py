@@ -8,7 +8,7 @@ class Config(objects.CephIntegrationBaseObject):
     def __init__(self, config=None, *args, **kwargs):
         super(Config, self).__init__(*args, **kwargs)
 
-        self.value = '_tendrl/config/ceph-integration/data'
+        self.value = '_tendrl/config/ceph_integration'
         self.data = config or cmn_config.load_config(
             'ceph-integration',
             "/etc/tendrl/ceph-integration/ceph-integration.conf.yaml")
@@ -18,5 +18,5 @@ class Config(objects.CephIntegrationBaseObject):
 class _ConfigEtcd(EtcdObj):
     """Config etcd object, lazily updated
         """
-    __name__ = '_tendrl/config/ceph-integration/'
+    __name__ = '_tendrl/config/ceph_integration'
     _tendrl_cls = Config

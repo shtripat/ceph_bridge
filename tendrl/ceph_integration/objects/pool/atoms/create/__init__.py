@@ -4,9 +4,9 @@ from tendrl.ceph_integration import objects
 
 
 class Create(objects.CephIntegrationBaseAtom):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, config=None, *args, **kwargs):
         super(Create, self).__init__(*args, **kwargs)
-        self.obj = objects.pool.Pool
+        self.obj = objects.Pool
 
     def run(self, parameters):
         fsid = manager_utils.get_fsid()

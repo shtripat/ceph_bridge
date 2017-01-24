@@ -14,7 +14,7 @@ setup(
     zip_safe=False,
     entry_points={
         'console_scripts': ['tendrl-ceph-integration = '
-                            'tendrl.ceph_integration.manager.manager:main'
+                            'tendrl.ceph_integration.manager:main'
                             ]
     }
 )

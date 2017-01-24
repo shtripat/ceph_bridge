@@ -9,6 +9,9 @@ else:
 from tendrl.commons import etcdobj
 from tendrl.commons import log
 from tendrl.commons import CommonNS
+from tendrl.ceph_integration.objects.definition import Definition
+from tendrl.ceph_integration.objects.config import Config
+from tendrl.ceph_integration.objects.tendrl_context import TendrlContext
 
 
 class CephIntegrationNS(CommonNS):
@@ -31,12 +34,12 @@ class CephIntegrationNS(CommonNS):
          tendrl_ns.ceph_integration.objects.TendrlContext()
 
         # etcd_orm
-        etcd_kwargs = {'port': tendrl_ns.config['etcd_port'],
-                       'host': tendrl_ns.config["etcd_connection"]}
+        etcd_kwargs = {'port': tendrl_ns.config.data['etcd_port'],
+                       'host': tendrl_ns.config.data["etcd_connection"]}
         tendrl_ns.etcd_orm = etcdobj.Server(etcd_kwargs=etcd_kwargs)
 
         log.setup_logging(
-            tendrl_ns.config['log_cfg_path'],
+             tendrl_ns.config.data['log_cfg_path'],
         )
 
 

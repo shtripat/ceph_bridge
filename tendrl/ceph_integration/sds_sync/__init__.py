@@ -26,8 +26,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         if tag.startswith("ceph/cluster/"):
                             if not cluster_data[
                                     'fsid'
-                            ] in self._manager.clusters:
-                                self._manager.on_pull(
+                            ] in self.clusters:
+                                self.on_pull(
                                     cluster_data
                                 )
                             else:

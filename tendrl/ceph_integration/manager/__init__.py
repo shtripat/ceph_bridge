@@ -3,8 +3,8 @@ import logging
 import signal
 
 from tendrl.commons.manager import Manager
-from tendrl.node_agent import node_sync
-from tendrl.node_agent import central_store
+from tendrl.ceph_integration import sds_sync
+from tendrl.ceph_integration import central_store
 
 
 LOG = logging.getLogger(__name__)
@@ -30,9 +30,14 @@ class CephIntegrationManager(Manager):
 def main():
     tendrl_ns.register_subclasses_to_ns()
     tendrl_ns.setup_initial_objects()
+
     tendrl_ns.central_store_thread =\
         central_store.CephIntegrationEtcdCentralStore()
-    tendrl_ns.state_sync_thread = node_sync.CephIntegrationSdsSyncStateThread()
+    tendrl_ns.state_sync_thread = sds_sync.CephIntegrationSdsSyncStateThread()
+
+    tendrl_ns.definitions.save()
+    tendrl_ns.config.save()
+
     m = CephIntegrationManager()
     m.start()
 

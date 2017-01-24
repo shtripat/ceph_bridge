@@ -12,8 +12,7 @@ class CephIntegrationBaseObject(objects.BaseObject):
             atoms=None,
             flows=None
     ):
-        super(CephIntegrationBaseObject, self).__init__(name=None,
-                                                        attrs=None,
+        super(CephIntegrationBaseObject, self).__init__(attrs=None,
                                                         enabled=None,
                                                         obj_list=None,
                                                         obj_value=None,
@@ -52,6 +51,8 @@ class CephIntegrationBaseObject(objects.BaseObject):
 
 
 class CephIntegrationBaseAtom(atoms.BaseAtom):
+    obj = CephIntegrationBaseObject
+
     def __init__(
             self, *args, **kwargs):
             super(CephIntegrationBaseAtom, self).__init__(*args, **kwargs)
