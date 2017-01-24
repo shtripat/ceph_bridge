@@ -4,9 +4,9 @@ from tendrl.ceph_integration import objects
 
 
 class Delete(objects.CephIntegrationBaseAtom):
-    def __init__(self, *args, **kwargs):
-        super(Delete, self).__init__(*args, **kwargs)
-        self.obj = objects.pool.Pool
+    def __init__(self, config=None, *args, **kwargs):
+        super(Create, self).__init__(*args, **kwargs)
+        self.obj = objects.Pool
 
     def run(self, parameters):
         cluster_id = parameters['Tendrl_context.cluster_id']
