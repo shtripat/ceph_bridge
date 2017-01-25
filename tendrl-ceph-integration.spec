@@ -23,9 +23,6 @@ Tendrl bridge for Ceph Storage
 
 %prep
 %setup
-# Remove the requirements file to avoid adding into
-# distutils requiers_dist config
-rm -rf {test-,}requirements.txt
 
 # Remove bundled egg-info
 rm -rf %{name}.egg-info
@@ -35,12 +32,13 @@ rm -rf %{name}.egg-info
 
 %install
 %{__python} setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES
-install -m  0755 --directory $RPM_BUILD_ROOT%{_var}/log/tendrl/ceph-integration
 install -m  0755  --directory $RPM_BUILD_ROOT%{_sysconfdir}/tendrl/ceph-integration
+install -m  0755 --directory $RPM_BUILD_ROOT%{_var}/log/tendrl/ceph-integration
 install -m  0755  --directory $RPM_BUILD_ROOT%{_datadir}/tendrl/ceph-integration
+install -Dm 0644  etc/tendrl/ceph-integration/ceph-integration.conf.yaml.sample $RPM_BUILD_ROOT%{_sysconfdir}/tendrl/ceph-integration/ceph-integration.conf.yaml
+install -Dm 0644  etc/tendrl/ceph-integration/*.yaml.* $RPM_BUILD_ROOT%{_datadir}/tendrl/ceph-integration/.
+install -Dm 0644 etc/tendrl/ceph-integration/logging.yaml.timedrotation.sample $RPM_BUILD_ROOT%{_sysconfdir}/tendrl/ceph-integration_logging.yaml
 install -p -D -m 0644 systemd/tendrl-cephd.service $RPM_BUILD_ROOT%{_unitdir}/tendrl-cephd.service
-install -Dm 0644 etc/logging.yaml.timedrotation.sample $RPM_BUILD_ROOT%{_sysconfdir}/tendrl/ceph-integration_logging.yaml
-install -Dm 644 etc/*.sample $RPM_BUILD_ROOT%{_datadir}/tendrl/ceph-integration/.
 
 %post
 %systemd_post tendrl-cephd.service
@@ -57,13 +55,17 @@ py.test -v tendrl/ceph_integration/tests || :
 %files -f INSTALLED_FILES
 %dir %{_var}/log/tendrl/ceph-integration
 %dir %{_sysconfdir}/tendrl/ceph-integration
-%dir %{_datadir}/tendrl/ceph-integration
 %doc README.rst
 %license LICENSE
-%{_datadir}/tendrl/ceph-integration/
+%{_datadir}/tendrl/ceph-integration/.
 %{_unitdir}/tendrl-cephd.service
 %{_sysconfdir}/tendrl/ceph-integration_logging.yaml
+%{_sysconfdir}/tendrl/ceph-integration/ceph-integration.conf.yaml
 
 %changelog
+* Mon Jan 23 2017 Timothy Asir Jeyasingh <tjeyasin@redhat.com> - 1.1-1
+- Config file changes
+- Import ceph
+
 * Wed Oct 26 2016 Timothy Asir Jeyasingh <tjeyasin@redhat.com> - 0.0.1-1
 - Initial build.
