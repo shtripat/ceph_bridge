@@ -1,5 +1,7 @@
+import json
 import logging
 import os
+import subprocess
 
 from tendrl.commons.etcdobj import EtcdObj
 
@@ -17,6 +19,7 @@ class TendrlContext(objects.CephIntegrationBaseObject):
         # integration_id is the Tendrl generated cluster UUID
         self.integration_id = integration_id or self._get_local_integration_id()
         self.fsid = fsid or self._get_local_fsid()
+        self.sds_name, self.sds_version = self._get_sds_details()
         self._etcd_cls = _TendrlContextEtcd
 
     def create_local_integration_id(self):
@@ -66,6 +69,27 @@ class TendrlContext(objects.CephIntegrationBaseObject):
                         return fsid
         except AttributeError:
             return None
+
+    def _get_sds_details(self):
+        cmd = subprocess.Popen(
+            "ceph version -f json",
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        out, err = cmd.communicate()
+        if err and 'command not found' in err:
+            LOG.info("ceph not installed on host")
+            return None
+
+        if out:
+            details = json.loads(out)
+
+            version = details['version'].split()[2]
+            name = details['version'].split()[0]
+            return name, version
+
+
 
 class _TendrlContextEtcd(EtcdObj):
     """A table of the tendrl context, lazily updated

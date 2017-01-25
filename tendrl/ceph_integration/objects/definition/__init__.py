@@ -1,4 +1,5 @@
 import importlib
+import os
 
 import namespaces as ns
 import yaml
@@ -17,9 +18,10 @@ class Definition(objects.BaseObject):
     def __init__(self, *args, **kwargs):
         super(Definition, self).__init__(*args, **kwargs)
 
-        self.value = '_tendrl/definitions'
-        self.ceph = ceph.data
-        self._parsed_defs = yaml.safe_load(self.ceph)
+        self.value = 'clusters/%s/definitions'
+        self.data = ceph.data
+        self._parsed_defs = self._get_parsed_defs()
+        self._integration_id = self._get_local_integration_id()
         self._etcd_cls = _DefinitionEtcd
 
     def get_obj_definition(self, namespace, obj_name):
@@ -69,12 +71,28 @@ class Definition(objects.BaseObject):
                             )
 
     def _get_parsed_defs(self):
-        self._parsed_defs = yaml.safe_load(self.ceph)
+        self._parsed_defs = yaml.safe_load(self.data)
         return self._parsed_defs
+
+    def _get_local_integration_id(self):
+        try:
+            tendrl_context_path = "/etc/tendrl/ceph-integration/integration_id"
+            if os.path.isfile(tendrl_context_path):
+                with open(tendrl_context_path) as f:
+                    integration_id = f.read()
+                    if integration_id:
+                        return integration_id
+        except AttributeError:
+            return None
+
 
 
 class _DefinitionEtcd(etcdobj.EtcdObj):
     """A table of the Definitions, lazily updated
     """
-    __name__ = '_tendrl/definitions'
+    __name__ = 'clusters/%s/definitions'
     _tendrl_cls = Definition
+
+    def render(self):
+        self.__name__ = self.__name__ % self._integration_id
+        return super(_DefinitionEtcd, self).render()
