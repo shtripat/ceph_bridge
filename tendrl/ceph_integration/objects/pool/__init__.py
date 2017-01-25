@@ -4,13 +4,13 @@ from tendrl.ceph_integration import objects
 
 class Pool(objects.CephIntegrationBaseObject):
     def __init__(self, pool_id=None,
-                 poolname=None, pg_num=None, min_size=None,
+                 pool_name=None, pg_num=None, min_size=None,
                  used=None, percent_used=None, *args, **kwargs):
         super(Pool, self).__init__(*args, **kwargs)
 
         self.value = 'clusters/%s/Pools/%s'
         self.pool_id = pool_id
-        self.poolname = poolname
+        self.pool_name = pool_name
         self.pg_num = pg_num
         self.min_size = min_size
         self.used = used
