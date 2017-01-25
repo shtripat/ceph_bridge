@@ -39,11 +39,12 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
     def _ping_cluster(self):
         if tendrl_ns.tendrl_context.fsid:
             cluster_data = ceph.heartbeat(tendrl_ns.tendrl_context.fsid)
+            tendrl_ns.tendrl_context.fsid = self.fsid = cluster_data['fsid']
         else:
             cluster_data = ceph.heartbeat()
             if cluster_data:
                 if "fsid" in cluster_data:
-                    tendrl_ns.tendrl_context.fsid = cluster_data['fsid']
+                    tendrl_ns.tendrl_context.fsid = self.fsid = cluster_data['fsid']
                     tendrl_ns.tendrl_context.create_local_fsid()
 
         tendrl_ns.tendrl_context.name = self.name = cluster_data['name']
