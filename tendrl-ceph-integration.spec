@@ -12,7 +12,6 @@ BuildRequires: pytest
 BuildRequires: systemd
 
 Requires: python-etcd
-Requires: python-dateutil
 Requires: python-gevent
 Requires: python-greenlet
 Requires: pytz

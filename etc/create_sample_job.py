@@ -13,9 +13,9 @@ job = {
         "Pool.poolname": 'test',
         "Pool.pg_num": 1,
         "Pool.min_size": 1,
-        "Tendrl_context.sds_name": "ceph",
-        "Tendrl_context.sds_version": "1",
-        "Tendrl_context.cluster_id": "49fa2adde8a6e98591f0f5cb4bc5f44d"
+        "TendrlContext.sds_name": "ceph",
+        "TendrlContext.sds_version": "1",
+        "TendrlContext.integration_id": "49fa2adde8a6e98591f0f5cb4bc5f44d"
     },
     type: "sds"
 }

@@ -1,6 +1,6 @@
-from tendrl.ceph_integration.flows import CephIntegrationBaseFlow
+from tendrl.ceph_integration import flows
 
 
-class CreatePool(CephIntegrationBaseFlow):
+class CreatePool(flows.CephIntegrationBaseFlow):
     def run(self):
         super(CreatePool, self).run()
