@@ -11,9 +11,9 @@ namespace.tendrl.ceph_integration:
           - Pool.poolname
           - Pool.pg_num
           - Pool.min_size
-          - Tendrl_context.sds_name
-          - Tendrl_context.sds_version
-          - Tendrl_context.cluster_id
+          - TendrlContext.sds_name
+          - TendrlContext.sds_version
+          - TendrlContext.integration_id
       run: tendrl.ceph_integration.flows.create_pool.CreatePool
       type: Create
       uuid: faeab231-69e9-4c9d-b5ef-a67ed057f98b
@@ -26,9 +26,9 @@ namespace.tendrl.ceph_integration:
       inputs:
         mandatory:
           - Pool.pool_id
-          - Tendrl_context.sds_name
-          - Tendrl_context.sds_version
-          - Tendrl_context.cluster_id
+          - TendrlContext.sds_name
+          - TendrlContext.sds_version
+          - TendrlContext.integration_id
       run: tendrl.ceph_integration.flows.delete_pool.DeletePool
       type: Delete
       uuid: 4ac41d8f-a0cf-420a-b2fe-18761e07f3b9
@@ -98,8 +98,8 @@ namespace.tendrl.ceph_integration:
           help: "Sets the minimum number of replicas required for I/O"
           type: Integer
       enabled: true
-      value: clusters/$Tendrl_context.cluster_id/maps/osd_map/data
-    Tendrl_context:
+      value: clusters/$TendrlContext.integration_id/maps/osd_map/data
+    TendrlContext:
       attrs:
         cluster_id:
           help: "Tendrl managed/generated cluster id for the sds being managed by Tendrl"
@@ -111,5 +111,5 @@ namespace.tendrl.ceph_integration:
           help: "Sds version eg: 1.2.3"
           type: String
       enabled: true
-      value: clusters/$Tendrl_context.cluster_id/Tendrl_context/
+      value: clusters/$TendrlContext.integration_id/TendrlContext/
 tendrl_schema_version: 0.3

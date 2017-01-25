@@ -13,7 +13,7 @@ def get_tendrl_context():
     if os.path.isfile(TENDRL_CONTEXT):
         with open(TENDRL_CONTEXT) as f:
             cluster_id = f.read()
-            LOG.info("Tendrl_context.cluster_id=%s found!" % cluster_id)
+            LOG.info("TendrlContext.integration_id=%s found!" % cluster_id)
             return cluster_id
     else:
         return None
@@ -34,7 +34,7 @@ def get_fsid():
         with open(FSID) as f:
             fsid = f.read()
             if fsid:
-                LOG.info("Tendrl_context.fsid==%s found!" % fsid)
+                LOG.info("TendrlContext.fsid==%s found!" % fsid)
                 return fsid
     else:
         return None
@@ -46,7 +46,7 @@ def set_fsid(fsid):
         with open(FSID, 'wb+') as f:
             f.write(fsid)
             current_fsid = fsid
-            LOG.info("Tendrl_context.fsid==%s created!" % fsid)
+            LOG.info("TendrlContext.fsid==%s created!" % fsid)
 
     return current_fsid
 

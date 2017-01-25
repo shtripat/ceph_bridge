@@ -1,7 +1,7 @@
-from tendrl.commons.central_store import EtcdCentralStore
+from tendrl.commons import central_store
 
 
-class CephIntegrationEtcdCentralStore(EtcdCentralStore):
+class CephIntegrationEtcdCentralStore(central_store.EtcdCentralStore):
     def __init__(self):
         super(CephIntegrationEtcdCentralStore, self).__init__()
 

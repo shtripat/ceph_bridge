@@ -437,7 +437,7 @@ def _get_config(cluster_name):
     return config_response
 
 
-def get_cluster_object(cluster_name, sync_type, since):
+def get_cluster_object(cluster_name, sync_type):
     # TODO(Rohan) for the synced objects that support it, support
     # fetching older-than-present versions to allow the master
     # to backfill its history.
@@ -595,19 +595,12 @@ def get_heartbeats():
         import rados
     except ImportError:
         # Ceph isn't installed, report no services or clusters
-        server_heartbeat = {
-            'services': {},
-            'boot_time': get_boot_time(),
-            'ceph_version': None
-        }
-        return server_heartbeat, {}
+        return None, {}
 
     # Map of FSID to path string string
     mon_sockets = {}
     # FSID string to cluster name string
     fsid_names = {}
-    # Service name to service dict
-    services = {}
 
     # For each admin socket, try to interrogate the service
     for filename in glob("/var/run/ceph/*.asok"):
@@ -629,7 +622,6 @@ def get_heartbeats():
                 service_data['id']
             )
 
-            services[service_name] = service_data
             fsid_names[service_data['fsid']] = service_data['cluster']
 
             if service_data['type'] == 'mon' and service_data[
@@ -667,13 +659,7 @@ def get_heartbeats():
             # from our report
             pass
 
-    server_heartbeat = {
-        'services': services,
-        'boot_time': get_boot_time(),
-        'ceph_version': ceph_version
-    }
-
-    return server_heartbeat, cluster_heartbeat
+    return ceph_version, cluster_heartbeat
 
 
 def service_status(socket_path):
@@ -800,41 +786,27 @@ def selftest_exception():
     raise RuntimeError("This is a self-test exception")
 
 
-def _heartbeat(heartbeat_type, discover, fsid):
+def _heartbeat(fsid):
     """Send an event to the master with the terse status
 
     """
-    service_heartbeat, cluster_heartbeat = get_heartbeats()
+    ceph_version, cluster_heartbeat = get_heartbeats()
 
     fqdn = subprocess.check_output("hostname -f", shell=True).strip()
-    service_heartbeat.update({'id': fqdn})
-
-    if heartbeat_type == "cluster":
-        if discover:
-            response = {}
-            for c_fsid, cluster_data in cluster_heartbeat.items():
-                cluster_data.update({'id': fqdn})
-                response.update(
-                    fire_event(
-                        cluster_data,
-                        'ceph/cluster/{0}'.format(c_fsid)
-                    )
-                )
-            return response
-        if fsid:
-            for c_fsid, cluster_data in cluster_heartbeat.items():
-                if fsid == c_fsid:
-                    cluster_data.update({'id': fqdn})
-                    return fire_event(
-                        cluster_data, 'ceph/cluster/{0}'.format(c_fsid)
-                    )
+    if fsid:
+        for c_fsid, cluster_data in cluster_heartbeat.items():
+            if fsid == c_fsid:
+                cluster_data.update({'id': fqdn, "ceph_version": ceph_version})
+                return cluster_data
     else:
-        return fire_event(service_heartbeat, 'ceph/server')
+        for c_fsid, cluster_data in cluster_heartbeat.items():
+            cluster_data.update({'id': fqdn, "ceph_version": ceph_version})
+            return cluster_data
 
 
-def heartbeat(heartbeat_type="service", discover=False, fsid=None):
+def heartbeat(fsid=None):
     try:
-        return _heartbeat(heartbeat_type, discover, fsid)
+        return _heartbeat(fsid)
     except Exception:
         # TODO(Rohan): Tackle this later
         pass
