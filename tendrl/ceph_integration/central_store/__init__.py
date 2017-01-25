@@ -24,7 +24,7 @@ class CephIntegrationEtcdCentralStore(central_store.EtcdCentralStore):
     def save_tendrlcontext(self, context):
         tendrl_ns.etcd_orm.save(context)
 
-    def save_definitions(self, definition):
+    def save_definition(self, definition):
         tendrl_ns.etcd_orm.save(definition)
 
     def save_pool(self, pool):
