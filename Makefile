@@ -1,6 +1,6 @@
 NAME=tendrl-ceph-integration
 VERSION := $(shell PYTHONPATH=. python -c \
-             'import tendrl.ceph_integration; print tendrl.ceph_integration.__version__' \
+             'import version; print version.__version__' \
              | sed 's/\.dev[0-9]*//')
 RELEASE=1
 COMMIT := $(shell git rev-parse HEAD)
@@ -31,7 +31,7 @@ gitversion:
 	# Set version and release to the latest values from Git
 	$(eval VERSION := $(VERSION).dev$(GIT_RELEASE))
 	$(eval RELEASE := $(GIT_RELEASE).$(SHORTCOMMIT))
-	sed -i tendrl/ceph_integration/__init__.py \
+	sed -i version.py \
 	  -e "s/^__version__ = .*/__version__ = '$(VERSION)'/"
 	sed -i tendrl-ceph-integration.spec \
 	  -e "s/^Version: .*/Version: $(VERSION)/"
