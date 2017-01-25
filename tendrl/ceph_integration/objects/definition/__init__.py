@@ -21,7 +21,7 @@ class Definition(objects.BaseObject):
         self.value = 'clusters/%s/definitions'
         self.data = ceph.data
         self._parsed_defs = self._get_parsed_defs()
-        self._integration_id = self._get_local_integration_id()
+        self.integration_id = self._get_local_integration_id()
         self._etcd_cls = _DefinitionEtcd
 
     def get_obj_definition(self, namespace, obj_name):
@@ -94,5 +94,5 @@ class _DefinitionEtcd(etcdobj.EtcdObj):
     _tendrl_cls = Definition
 
     def render(self):
-        self.__name__ = self.__name__ % self._integration_id
+        self.__name__ = self.__name__ % self.integration_id
         return super(_DefinitionEtcd, self).render()
