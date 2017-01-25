@@ -71,7 +71,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
 
         self.update_time = datetime.datetime.utcnow().replace(tzinfo=utc)
 
-        LOG.debug('Checking for version increments in heartbeat')
+        LOG.info('Checking for version increments in heartbeat...')
         for sync_type in SYNC_OBJECT_TYPES:
             data = self._sync_objects.on_version(
                 sync_type, cluster_data['versions'][sync_type.str]
