@@ -89,7 +89,7 @@ namespace.tendrl.ceph_integration:
               - TendrlContext.sds_name
               - TendrlContext.sds_version
               - TendrlContext.integration_id
-          run: tendrl.ceph_integration.objects.pool.flows.delete_pool.DeletePool
+          run: tendrl.ceph_integration.objects.pool.flows.delete.DeletePool
           type: Delete
           uuid: 4ac41d8f-a0cf-420a-b2fe-18761e07f3b9
       attrs:
