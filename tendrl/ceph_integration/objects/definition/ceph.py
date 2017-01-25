@@ -19,6 +19,27 @@ namespace.tendrl.ceph_integration:
       type: Create
       uuid: faeab231-69e9-4c9d-b5ef-a67ed057f98b
   objects:
+    SyncObject:
+      attrs:
+        updated:
+          help: "Updated"
+          type: String
+        sync_type:
+          help: "Sync Type eg: Mon Map, OSD Map etc"
+          type: String
+        version:
+          help: "version of sync type eg: 1.2.3"
+          type: String
+        when:
+          help: "time of data collection"
+          type: String
+        data:
+          help: "Sync data"
+          type: String
+      help: "Cluster sync data "
+      enabled: true
+      value: clusters/$TendrlContext.integration_id/maps/$SyncObject.sync_type
+
     Config:
       enabled: True
       help: "Config"
