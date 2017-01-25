@@ -68,7 +68,10 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         cluster maps for us to fetch.
 
         """
-
+        if cluster_data is None:
+            return
+        if cluster_data['versions'] is None:
+            return
         self.update_time = datetime.datetime.utcnow().replace(tzinfo=utc)
 
         LOG.info('Checking for version increments in heartbeat...')
