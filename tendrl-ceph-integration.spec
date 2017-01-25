@@ -1,5 +1,5 @@
 Name: tendrl-ceph-integration
-Version: 1.1
+Version: 1.2
 Release: 1%{?dist}
 BuildArch: noarch
 Summary: Tendrl bridge for Ceph Storage
