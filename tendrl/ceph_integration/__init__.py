@@ -5,12 +5,11 @@ except ImportError:
 else:
     monkey.patch_all()
 
-from tendrl.commons import etcdobj
-from tendrl.commons import log
 from tendrl.commons import CommonNS
 from tendrl.ceph_integration.objects.definition import Definition
 from tendrl.ceph_integration.objects.config import Config
 from tendrl.ceph_integration.objects.tendrl_context import TendrlContext
+from tendrl.ceph_integration.objects.node_context import NodeContext
 
 from tendrl.ceph_integration.flows.create_pool import CreatePool
 from tendrl.ceph_integration.objects.pool import Pool
@@ -28,26 +27,4 @@ class CephIntegrationNS(CommonNS):
         self.type = 'sds'
         super(CephIntegrationNS, self).__init__()
 
-    def setup_initial_objects(self):
-        # Definitions
-        tendrl_ns.definitions = tendrl_ns.ceph_integration.objects.Definition()
-
-        # Config
-        tendrl_ns.config = tendrl_ns.ceph_integration.objects.Config()
-
-        # NodeContext
-        tendrl_ns.tendrl_context =\
-         tendrl_ns.ceph_integration.objects.TendrlContext()
-
-        # etcd_orm
-        etcd_kwargs = {'port': tendrl_ns.config.data['etcd_port'],
-                       'host': tendrl_ns.config.data["etcd_connection"]}
-        tendrl_ns.etcd_orm = etcdobj.Server(etcd_kwargs=etcd_kwargs)
-
-        log.setup_logging(
-             tendrl_ns.config.data['log_cfg_path'],
-        )
-
-
-import __builtin__
-__builtin__.tendrl_ns = CephIntegrationNS()
+CephIntegrationNS()
