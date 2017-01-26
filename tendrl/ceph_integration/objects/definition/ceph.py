@@ -19,6 +19,29 @@ namespace.tendrl.ceph_integration:
       type: Create
       uuid: faeab231-69e9-4c9d-b5ef-a67ed057f98b
   objects:
+    NodeContext:
+      attrs:
+        machine_id:
+          help: "Unique /etc/machine-id"
+          type: String
+        fqdn:
+          help: "FQDN of the Tendrl managed node"
+          type: String
+        node_id:
+          help: "Tendrl ID for the managed node"
+          type: String
+        tags:
+          help: "The tags associated with this node"
+          type: String
+        status:
+          help: "Node status"
+          type: String
+
+      enabled: true
+      list: clusters/$TendrlContext.integration_id/nodes/$NodeContext.node_id/NodeContext
+      value: clusters/$TendrlContext.integration_id/nodes/$NodeContext.node_id/NodeContext
+      help: Node Context
+
     SyncObject:
       attrs:
         updated:
