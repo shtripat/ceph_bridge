@@ -3,6 +3,7 @@ Description=Tendrl ceph integration to manage ceph storage system
 
 [Service]
 Type=simple
+Environment="HOME=/var/lib/tendrl"
 ExecStart=/usr/bin/tendrl-ceph-integration
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
