@@ -240,18 +240,6 @@ namespace.tendrl.ceph_integration:
         pool_id:
           help: Id of the pool
           type: String
-        order:
-          help: Order of the rbd
-          type: String
-        block_name_prefix:
-          help: Prefix for the block name
-          type: String
-        format:
-          help: format of rbd
-          type: int
-        features:
-          help: featutres for rbd
-          type: list
         flags:
           help: flags for rbd
           type: list

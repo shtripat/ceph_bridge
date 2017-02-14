@@ -1,6 +1,6 @@
-from tendrl.ceph_integration.manager.crud import Crud
 from tendrl.ceph_integration import objects
 from tendrl.ceph_integration.objects.rbd import Rbd
+from tendrl.ceph_integration.manager.rbd_crud import RbdCrud
 
 
 class Delete(objects.CephIntegrationBaseAtom):
@@ -11,7 +11,7 @@ class Delete(objects.CephIntegrationBaseAtom):
     def run(self):
         pool_id = self.parameters['Rbd.pool_id']
         rbd_name = self.parameters['Rbd.name']
-        crud = Crud()
+        crud = RbdCrud()
         crud.delete_rbd(
             pool_id,
             rbd_name

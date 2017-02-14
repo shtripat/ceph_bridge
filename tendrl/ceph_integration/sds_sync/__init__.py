@@ -19,6 +19,7 @@ from tendrl.ceph_integration.manager.pool_request_factory import \
     PoolRequestFactory
 from tendrl.ceph_integration.manager.rbd_request_factory import \
     RbdRequestFactory
+from tendrl.ceph_integration.objects import pool
 from tendrl.ceph_integration.sds_sync.sync_objects import SyncObjects
 from tendrl.ceph_integration.types import SYNC_OBJECT_TYPES, \
     SYNC_OBJECT_STR_TYPE, CRUSH_MAP, CRUSH_NODE, OSD, POOL, RBD, \
@@ -89,10 +90,61 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             if data:
                 self.on_sync_object(data)
 
+        # Get and update rbds for pools
+        self._sync_rbds()
+
         # Get and update ec profiles for the cluster
         self._sync_ec_profiles()
 
+    def _sync_rbds(self):
+        pools = tendrl_ns.etcd_orm.client.read(
+            "clusters/%s/Pools" % tendrl_ns.tendrl_context.integration_id,
+            recursive=True
+        )
+        for child in pools._children:
+            pool_id = child['key'].split('/')[-1]
+            pool_name = tendrl_ns.etcd_orm.client.read(
+                "clusters/%s/Pools/%s/pool_name" %
+                (tendrl_ns.tendrl_context.integration_id, pool_id)
+            ).value
+            rbd_details = self._get_rbds(pool_name)
+            for k,v in rbd_details.iteritems():
+                tendrl_ns.ceph_integration.objects.Rbd(
+                    name=k,
+                    size=v['size'],
+                    pool_id=pool_id,
+                    flags=v['flags'],
+                    provisioned=self._to_bytes(v['provisioned']),
+                    used=self._to_bytes(v['used'])
+                ).save()
+
     def _sync_ec_profiles(self):
+        """
+        Invokes the below CLI commands
+        1.
+        ```ceph osd erasure-code-profile ls```
+
+        and required output format is a list of ec profiles separated with new
+        lines as below
+
+        ```
+        default
+        k4m2
+        ```
+
+        2.
+        ```ceph osd erasure-code-profile get {name}```
+
+        and the required output format is '=' separated values in multiple lines
+
+        ```
+        k=2
+        m=1
+        plugin=jerasure
+        directory={dir}
+        ```
+
+        """
         ec_profile_details = {}
 
         commands = [
@@ -179,22 +231,6 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         used=pool_used,
                         percent_used=pcnt
                     ).save()
-
-                    # Get the rbds for the pool and update
-                    rbd_details = self._get_rbds(raw_pool['pool_name'])
-                    for k,v in rbd_details.iteritems():
-                        tendrl_ns.ceph_integration.objects.Rbd(
-                            name=k,
-                            size=v['size'],
-                            pool_id=raw_pool['pool'],
-                            order=v['order'],
-                            block_name_prefix=v['block_name_prefix'],
-                            format=v['format'],
-                            features=v['features'],
-                            flags=v['flags'],
-                            provisioned=self._to_bytes(v['provisioned']),
-                            used=self._to_bytes(v['used'])
-                        ).save()
         else:
             LOG.warn(
                 "ClusterMonitor.on_sync_object: stale object"
@@ -202,6 +238,36 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             )
 
     def _get_rbds(self, pool_name):
+        """
+        Invokes the below CLI commands
+        1.
+        ```rbd ls --pool {name}```
+
+        and required output format is a list of rbds separated with new
+        lines as below
+
+        ```
+        mmrbd1
+        mmdrbd2
+        ```
+
+        2.
+        ```rbd --image {image-name} --pool {pool-name} info```
+
+        and the required output format is as below
+
+        ```
+        rbd image 'mmrbd1':
+	       size 1024 MB in 256
+           order 22 (4096 kB objects)
+           block_name_prefix: rbd_data.1e31238e1f29
+           format: 2
+           features: layering, exclusive-lock, object-map, fast-diff, deep-flatten
+           flags:
+        ```
+
+        """
+
         rbd_details = {}
 
         commands = [

@@ -4,10 +4,7 @@ from tendrl.ceph_integration import objects
 
 class Rbd(objects.CephIntegrationBaseObject):
     def __init__(self, name=None, size=None,
-                 pool_id=None, order=None,
-                 block_name_prefix=None,
-                 format=None, features=None,
-                 flags=None, provisioned=None,
+                 pool_id=None, flags=None, provisioned=None,
                  used=None, *args, **kwargs):
         super(Rbd, self).__init__(*args, **kwargs)
 
@@ -15,10 +12,6 @@ class Rbd(objects.CephIntegrationBaseObject):
         self.name = name
         self.size = size
         self.pool_id = pool_id
-        self.order = order
-        self.block_name_prefix = block_name_prefix
-        self.format = format
-        self.features = features
         self.flags = flags
         self.provisioned = provisioned
         self.used = used

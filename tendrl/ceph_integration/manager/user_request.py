@@ -240,14 +240,14 @@ class RadosRequest(UserRequest):
             commands)
 
 
-class ECProfileRequest(UserRequest):
+class CephRequest(UserRequest):
     """A user request whose remote operations consist of librados mon commands
 
     """
 
     def __init__(self, headline, commands):
         self._commands = commands
-        super(ECProfileRequest, self).__init__(headline)
+        super(CephRequest, self).__init__(headline)
 
     def _submit(self, commands=None):
         if commands is None:
@@ -338,7 +338,7 @@ class OsdMapModifyingRequest(RadosRequest):
                                                    self._await_version))
 
 
-class ECProfileModifyingRequest(ECProfileRequest):
+class ECProfileModifyingRequest(CephRequest):
     def __init__(self, headline, commands):
         super(ECProfileModifyingRequest, self).__init__(
             headline, commands)
