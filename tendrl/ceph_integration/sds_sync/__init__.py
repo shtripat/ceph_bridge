@@ -191,7 +191,9 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                             block_name_prefix=v['block_name_prefix'],
                             format=v['format'],
                             features=v['features'],
-                            flags=v['flags']
+                            flags=v['flags'],
+                            provisioned=self._to_bytes(v['provisioned']),
+                            used=self._to_bytes(v['used'])
                         ).save()
         else:
             LOG.warn(
@@ -211,7 +213,6 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             for item in cmd_out['out'].split('\n'):
                 if item != "":
                     rbd_list.append(item)
-            LOG.error(rbd_list)
             for rbd in rbd_list:
                 commands = [
                     "info", "--image", rbd
@@ -235,6 +236,19 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                                     key = key[1:]
                                 rbd_info[key] = item.split()[1].strip()
                             rbd_details[rbd] = rbd_info
+
+                commands = [
+                    "du", "--image", rbd
+                ]
+                cmd_out = ceph.rbd_command(
+                    commands,
+                    pool_name
+                )
+                if cmd_out['err'] == "":
+                    rbd_details[rbd]['provisioned'] = \
+                        cmd_out['out'].split('\n')[1].split()[1]
+                    rbd_details[rbd]['used'] = \
+                        cmd_out['out'].split('\n')[1].split()[2]
 
         return rbd_details
 
@@ -296,11 +310,13 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         raise rados.Error("Missing fields in cluster stat")
                     index += 1
                     if index >= len(lines):
-                        raise rados.Error("No cluster stats to parse")
+                        LOG.warning("No cluster stats to parse")
+                        return cluster_stat
                     line = lines[index]
                     cluster_fields = line.split()
                     if len(cluster_fields) < 4:
-                        raise rados.Error("Missing fields in cluster stat")
+                        LOG.warning("Missing fields in cluster stat")
+                        return cluster_stat
                     cluster_stat['total'] = self._to_bytes(
                         cluster_fields[cluster_size_idx]
                     )
@@ -317,7 +333,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     pool_stat_available = True
                     index += 1
                     if index >= len(lines):
-                        raise rados.Error("No pool stats to parse")
+                        LOG.warning("No pool stats to parse")
+                        return cluster_stat
                     pool_fields = lines[index].split()
                     pool_name_idx = self._idx_in_list(pool_fields, 'NAME')
                     pool_id_idx = self._idx_in_list(pool_fields, 'ID')
@@ -333,13 +350,15 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     if pool_name_idx == -1 or pool_id_idx == -1 or \
                         pool_used_idx == -1 or pool_pcnt_used_idx == -1 or \
                         pool_max_avail_idx == -1:
-                        raise rados.Error("Missing fields in pool stat")
+                        LOG.warning("Missing fields in pool stat")
+                        return cluster_stat
                     index += 1
-                if pool_stat_available:
+                if pool_stat_available is True:
                     line = lines[index]
                     pool_fields = line.split()
                     if len(pool_fields) < 5:
-                        raise rados.Error("Missing fields in pool stat")
+                        LOG.warning("Missing fields in pool stat")
+                        return cluster_stat
                     dict = {}
                     dict['name'] = pool_fields[pool_name_idx]
                     dict['available'] = self._to_bytes(
@@ -441,7 +460,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
 
     def get_request_factory(self, object_type):
         try:
-            return self._request_factories[object_type](self)
+            return self._request_factories[object_type]()
         except KeyError:
             raise ValueError(
                 "{0} is not one of {1}".format(

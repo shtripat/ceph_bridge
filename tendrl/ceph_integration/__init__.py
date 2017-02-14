@@ -12,17 +12,12 @@ from tendrl.ceph_integration.objects.tendrl_context import TendrlContext
 from tendrl.ceph_integration.objects.node_context import NodeContext
 
 from tendrl.ceph_integration.flows.create_ec_profile import CreateECProfile
-from tendrl.ceph_integration.flows.create_ec_profile import CreateECProfile
 from tendrl.ceph_integration.flows.create_pool import CreatePool
 from tendrl.ceph_integration.objects.ecprofile.atoms.create import Create
 from tendrl.ceph_integration.objects.ecprofile.atoms.delete import Delete
-from tendrl.ceph_integration.objects.ecprofile.flows.delete_ec_profile import \
-    DeleteECProfile
 from tendrl.ceph_integration.objects.pool import Pool
 from tendrl.ceph_integration.objects.rbd import Rbd
 from tendrl.ceph_integration.objects.ecprofile import ECProfile
-from tendrl.ceph_integration.objects.ecprofile.atoms.create import Create
-from tendrl.ceph_integration.objects.ecprofile.atoms.delete import Delete
 from tendrl.ceph_integration.objects.ecprofile.flows.delete_ec_profile import \
     DeleteECProfile
 from tendrl.ceph_integration.objects.pool.atoms.create import Create

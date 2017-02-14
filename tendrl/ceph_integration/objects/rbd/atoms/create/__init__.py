@@ -10,7 +10,7 @@ class Create(objects.CephIntegrationBaseAtom):
 
     def run(self):
         attrs = dict(name=self.parameters['Rbd.name'],
-                     size=self.parameters['Rbd.size'],
+                     size=str(self.parameters['Rbd.size']),
                      pool_id=self.parameters.get('Rbd.pool_id')
                      )
         crud = Crud()

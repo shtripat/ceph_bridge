@@ -17,7 +17,6 @@ class ECProfileRequestFactory(RequestFactory):
 
         return ECProfileCreatingRequest(
             "Creating ec profile '{name}'".format(name=attributes['name']),
-            self._cluster_monitor.fsid, self._cluster_monitor.name,
             attributes['name'], commands)
 
     def delete(self, ec_profile_name):
@@ -27,5 +26,5 @@ class ECProfileRequestFactory(RequestFactory):
 
         return ECProfileModifyingRequest(
             "Deleting ec profile '{name}'".format(name=ec_profile_name),
-            self._cluster_monitor.fsid, self._cluster_monitor.name, commands
+            commands
         )

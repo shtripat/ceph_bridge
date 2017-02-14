@@ -14,13 +14,13 @@ class CrushNodeRequestFactory(RequestFactory):
 
     """
 
-    def __init__(self, monitor):
-        super(CrushNodeRequestFactory, self).__init__(monitor)
-        self.osd_map = self._cluster_monitor.get_sync_object(OsdMap)
+    def __init__(self):
+        super(CrushNodeRequestFactory, self).__init__()
+        self.osd_map = tendrl_ns.state_sync_thread.get_sync_object(OsdMap)
         # HERE we have access to the cluster_monitor and likely the server
         # monitor
         # self._server_monitor = monitor._servers
-        self.fsid = self._cluster_monitor.fsid
+        self.fsid = tendrl_ns.state_sync_thread.fsid
 
     def update(self, node_id, attributes):
         # TODO(Rohan) report Not Modified http://tracker.ceph.com/issues/9764
@@ -51,11 +51,11 @@ class CrushNodeRequestFactory(RequestFactory):
         LOG.info("Updating CRUSH node {c} parent {p} version {v}".format(
             c=commands, p=parent, v=self.osd_map.version))
         message = "Updating CRUSH node in {cluster_name}".format(
-            cluster_name=self._cluster_monitor.name)
+            cluster_name=tendrl_ns.state_sync_thread.name)
         return OsdMapModifyingRequest(
             message,
-            self._cluster_monitor.fsid,
-            self._cluster_monitor.name,
+            tendrl_ns.state_sync_thread.fsid,
+            tendrl_ns.state_sync_thread.name,
             commands
         )
 
@@ -67,11 +67,11 @@ class CrushNodeRequestFactory(RequestFactory):
             self._add_items(name, bucket_type, items)
 
         message = "Creating CRUSH node in {cluster_name}".format(
-            cluster_name=self._cluster_monitor.name)
+            cluster_name=tendrl_ns.state_sync_thread.name)
         return OsdMapModifyingRequest(
             message,
-            self._cluster_monitor.fsid,
-            self._cluster_monitor.name,
+            tendrl_ns.state_sync_thread.fsid,
+            tendrl_ns.state_sync_thread.name,
             commands
         )
 
@@ -79,11 +79,11 @@ class CrushNodeRequestFactory(RequestFactory):
         current_node = self.osd_map.get_tree_node(node_id)
         commands = [remove_bucket(current_node['name'], current_node)]
         message = "Removing CRUSH node in {cluster_name}".format(
-            cluster_name=self._cluster_monitor.name)
+            cluster_name=tendrl_ns.state_sync_thread.name)
         return OsdMapModifyingRequest(
             message,
-            self._cluster_monitor.fsid,
-            self._cluster_monitor.name,
+            tendrl_ns.state_sync_thread.fsid,
+            tendrl_ns.state_sync_thread.name,
             commands
         )
 

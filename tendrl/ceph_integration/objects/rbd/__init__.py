@@ -7,8 +7,8 @@ class Rbd(objects.CephIntegrationBaseObject):
                  pool_id=None, order=None,
                  block_name_prefix=None,
                  format=None, features=None,
-                 flags=None,
-                 *args, **kwargs):
+                 flags=None, provisioned=None,
+                 used=None, *args, **kwargs):
         super(Rbd, self).__init__(*args, **kwargs)
 
         self.value = 'clusters/%s/Pools/%s/rbds/%s'
@@ -20,6 +20,8 @@ class Rbd(objects.CephIntegrationBaseObject):
         self.format = format
         self.features = features
         self.flags = flags
+        self.provisioned = provisioned
+        self.used = used
         self._etcd_cls = _Rbd
 
 

@@ -89,7 +89,7 @@ class PoolRequestFactory(RequestFactory):
         ]
         return OsdMapModifyingRequest(
             "Deleting pool '{name}'".format(name=pool_name),
-            self._cluster_monitor.fsid, self._cluster_monitor.name, commands
+            commands
         )
 
     def _pool_min_size(self, req_size, req_min_size):
@@ -160,7 +160,7 @@ class PoolRequestFactory(RequestFactory):
             return PgCreatingRequest(
                 "Growing pool '{name}' to {size} PGs".format(
                     name=pool_name, size=final_pg_count),
-                self._cluster_monitor.fsid, self._cluster_monitor.name,
+                tendrl_ns.state_sync_thread.fsid, tendrl_ns.state_sync_thread.name,
                 pre_create_commands,
                 pool_id, pool_name, pgp_num,
                 initial_pg_count, final_pg_count, block_size)
@@ -183,8 +183,6 @@ class PoolRequestFactory(RequestFactory):
                     name=pool_name, attrs=", ".join(
                         "%s=%s" % (k, v) for k, v in attributes.items())
                 ),
-                self._cluster_monitor.fsid,
-                self._cluster_monitor.name,
                 commands
             )
 
@@ -219,6 +217,10 @@ class PoolRequestFactory(RequestFactory):
         del post_create_attrs['pg_num']
         if 'pgp_num' in post_create_attrs:
             del post_create_attrs['pgp_num']
+        if 'pool_type' in post_create_attrs:
+            del post_create_attrs['pool_type']
+        if 'erasure_code_profile' in post_create_attrs:
+            del post_create_attrs['erasure_code_profile']
 
         commands.extend(self._pool_attribute_commands(
             attributes['name'],
@@ -230,5 +232,4 @@ class PoolRequestFactory(RequestFactory):
 
         return PoolCreatingRequest(
             "Creating pool '{name}'".format(name=attributes['name']),
-            self._cluster_monitor.fsid, self._cluster_monitor.name,
             attributes['name'], commands)

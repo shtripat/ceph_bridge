@@ -67,7 +67,7 @@ class UserRequestBase(object):
     COMPLETE = USER_REQUEST_COMPLETE
     states = [NEW, SUBMITTED, COMPLETE]
 
-    def __init__(self, fsid, cluster_name):
+    def __init__(self):
         """Requiring cluster_name and fsid is redundant (ideally everything would
 
         speak in terms of fsid) but convenient, because the librados interface
@@ -86,8 +86,6 @@ class UserRequestBase(object):
         self.id = uuid.uuid4().__str__()
 
         self._minion_id = None
-        self.fsid = fsid
-        self._cluster_name = cluster_name
 
         self.jid = None
 
@@ -209,8 +207,8 @@ class UserRequestBase(object):
 
 class UserRequest(UserRequestBase):
 
-    def __init__(self, headline, fsid, cluster_name):
-        super(UserRequest, self).__init__(fsid, cluster_name)
+    def __init__(self, headline):
+        super(UserRequest, self).__init__()
         self._await_version = None
         self._headline = headline
 
@@ -224,17 +222,22 @@ class RadosRequest(UserRequest):
 
     """
 
-    def __init__(self, headline, fsid, cluster_name, commands):
+    def __init__(self, headline, commands):
         self._commands = commands
-        super(RadosRequest, self).__init__(headline, fsid, cluster_name)
+        super(RadosRequest, self).__init__(headline)
 
     def _submit(self, commands=None):
         if commands is None:
             commands = self._commands
 
         LOG.debug("%s._submit: %s/%s" %
-                  (self.__class__.__name__, self._cluster_name, commands))
-        return ceph.rados_commands(self.fsid, self._cluster_name, commands)
+                  (self.__class__.__name__,
+                   tendrl_ns.state_sync_thread.name,
+                   commands))
+        return ceph.rados_commands(
+            tendrl_ns.state_sync_thread.fsid,
+            tendrl_ns.state_sync_thread.name,
+            commands)
 
 
 class ECProfileRequest(UserRequest):
@@ -242,17 +245,21 @@ class ECProfileRequest(UserRequest):
 
     """
 
-    def __init__(self, headline, fsid, cluster_name, commands):
+    def __init__(self, headline, commands):
         self._commands = commands
-        super(ECProfileRequest, self).__init__(headline, fsid, cluster_name)
+        super(ECProfileRequest, self).__init__(headline)
 
     def _submit(self, commands=None):
         if commands is None:
             commands = self._commands
 
         LOG.debug("%s._submit: %s/%s" %
-                  (self.__class__.__name__, self._cluster_name, commands))
-        return ceph.ceph_command(self._cluster_name, commands)
+                  (self.__class__.__name__,
+                   tendrl_ns.state_sync_thread.name,
+                   commands))
+        return ceph.ceph_command(
+            tendrl_ns.state_sync_thread.name,
+            commands)
 
 
 class RbdRequest(UserRequest):
@@ -260,17 +267,19 @@ class RbdRequest(UserRequest):
 
     """
 
-    def __init__(self, headline, fsid, cluster_name, pool_name, commands):
+    def __init__(self, headline, pool_name, commands):
         self._commands = commands
         self._pool_name = pool_name
-        super(RbdRequest, self).__init__(headline, fsid, cluster_name)
+        super(RbdRequest, self).__init__(headline)
 
     def _submit(self, commands=None):
         if commands is None:
             commands = self._commands
 
         LOG.debug("%s._submit: %s/%s" %
-                  (self.__class__.__name__, self._cluster_name, commands))
+                  (self.__class__.__name__,
+                   tendrl_ns.state_sync_thread.name,
+                   commands))
         return ceph.rbd_command(commands, self._pool_name)
 
 
@@ -281,9 +290,9 @@ class OsdMapModifyingRequest(RadosRequest):
 
     """
 
-    def __init__(self, headline, fsid, cluster_name, commands):
+    def __init__(self, headline, commands):
         super(OsdMapModifyingRequest, self).__init__(
-            headline, fsid, cluster_name, commands)
+            headline, commands)
         self._await_version = None
 
     @property
@@ -296,7 +305,7 @@ class OsdMapModifyingRequest(RadosRequest):
     @property
     def associations(self):
         return {
-            'fsid': self.fsid
+            'fsid': tendrl_ns.state_sync_thread.fsid
         }
 
     @property
@@ -330,14 +339,14 @@ class OsdMapModifyingRequest(RadosRequest):
 
 
 class ECProfileModifyingRequest(ECProfileRequest):
-    def __init__(self, headline, fsid, cluster_name, commands):
+    def __init__(self, headline, commands):
         super(ECProfileModifyingRequest, self).__init__(
-            headline, fsid, cluster_name, commands)
+            headline, commands)
 
     @property
     def associations(self):
         return {
-            'fsid': self.fsid
+            'fsid': tendrl_ns.state_sync_thread.fsid
         }
 
 
@@ -348,14 +357,14 @@ class RbdMapModifyingRequest(RbdRequest):
 
     """
 
-    def __init__(self, headline, fsid, cluster_name, pool_name, commands):
+    def __init__(self, headline, pool_name, commands):
         super(RbdMapModifyingRequest, self).__init__(
-            headline, fsid, cluster_name, pool_name, commands)
+            headline, pool_name, commands)
 
     @property
     def associations(self):
         return {
-            'fsid': self.fsid
+            'fsid': tendrl_ns.state_sync_thread.fsid
         }
 
 
@@ -366,9 +375,9 @@ class PoolCreatingRequest(OsdMapModifyingRequest):
 
     """
 
-    def __init__(self, headline, fsid, cluster_name, pool_name, commands):
+    def __init__(self, headline, pool_name, commands):
         super(PoolCreatingRequest, self).__init__(
-            headline, fsid, cluster_name, commands)
+            headline, commands)
         self._awaiting_pgs = False
         self._pool_name = pool_name
 
@@ -427,18 +436,18 @@ class PoolCreatingRequest(OsdMapModifyingRequest):
 
 
 class ECProfileCreatingRequest(ECProfileModifyingRequest):
-    def __init__(self, headline, fsid, cluster_name, ec_profile_name,
+    def __init__(self, headline, ec_profile_name,
                  commands):
         super(ECProfileCreatingRequest, self).__init__(
-            headline, fsid, cluster_name, commands)
+            headline, commands)
         self._ec_profile_name = ec_profile_name
 
 
 class RbdCreatingRequest(RbdMapModifyingRequest):
-    def __init__(self, headline, fsid, cluster_name, rbd_name, pool_name,
+    def __init__(self, headline, rbd_name, pool_name,
                  commands):
         super(RbdCreatingRequest, self).__init__(
-            headline, fsid, cluster_name, pool_name, commands)
+            headline, pool_name, commands)
         self._rbd_name = rbd_name
 
 
@@ -534,7 +543,7 @@ class PgCreatingRequest(OsdMapModifyingRequest):
     OSD_MAP_WAIT = 'osd_map_wait'
     PG_MAP_WAIT = 'pg_map_wait'
 
-    def __init__(self, headline, fsid, cluster_name, commands,
+    def __init__(self, headline, commands,
                  pool_id, pool_name, pgp_num,
                  initial_pg_count, final_pg_count, block_size):
         """:param commands: Commands to execute before creating PGs
@@ -573,7 +582,7 @@ class PgCreatingRequest(OsdMapModifyingRequest):
             ]
 
         super(PgCreatingRequest, self).__init__(
-            headline, fsid, cluster_name, commands)
+            headline, commands)
         self._phase = self.JID_WAIT
 
     @property

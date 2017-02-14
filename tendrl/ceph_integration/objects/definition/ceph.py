@@ -255,6 +255,12 @@ namespace.tendrl.ceph_integration:
         flags:
           help: flags for rbd
           type: list
+        provisioned:
+          help: provisioned size
+          type: int
+        used:
+          help: used size
+          type: int
       help: "Rbd"
       enabled: true
       value: clusters/$TendrlContext.integration_id/Pools/$Pool.pool_id/rbds/$Rbd.name

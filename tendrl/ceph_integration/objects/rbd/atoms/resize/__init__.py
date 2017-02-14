@@ -10,7 +10,7 @@ class Resize(objects.CephIntegrationBaseAtom):
 
     def run(self):
         attrs = dict(pool_id=self.parameters['Rbd.pool_id'],
-                     size=self.parameters['Rbd.size'])
+                     size=str(self.parameters['Rbd.size']))
         crud = Crud()
         crud.update("rbd", self.parameters['Rbd.name'], attrs)
         return True
