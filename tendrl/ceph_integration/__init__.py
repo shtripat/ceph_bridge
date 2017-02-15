@@ -32,6 +32,7 @@ from tendrl.ceph_integration.objects.rbd.flows.resize_rbd import ResizeRbd
 from tendrl.ceph_integration.objects.pool.flows.delete_pool import DeletePool
 from tendrl.ceph_integration.objects.pool.flows.update_pool import UpdatePool
 from tendrl.ceph_integration.objects.sync_object import SyncObject
+from tendrl.ceph_integration.objects.utilization import Utilization
 
 
 class CephIntegrationNS(CommonNS):

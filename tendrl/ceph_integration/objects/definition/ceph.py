@@ -378,7 +378,23 @@ namespace.tendrl.ceph_integration:
       enabled: true
       value: clusters/$TendrlContext.integration_id/Pools/$Pool.pool_id
       list: clusters/$TendrlContext.integration_id/Pools
-
+    Utilization:
+      attrs:
+        total:
+          help: Total available size
+          type: int
+        used:
+          help: Used size
+          type: int
+        available:
+          help: Available size
+          type: int
+        pcnt_used:
+          help: Percent usage
+          type: int
+      help: "Overall utilization of cluster"
+      enabled: true
+      value: clusters/$TendrlContext.integration_id/Utilization
     TendrlContext:
       attrs:
         integration_id:

@@ -226,6 +226,13 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
 
             if sync_type.str == "osd_map":
                 util_data = self._get_utilization_data()
+                tendrl_ns.ceph_integration.objects.Utilization(
+                    total=util_data['cluster']['total'],
+                    used=util_data['cluster']['used'],
+                    available=util_data['cluster']['available'],
+                    pcnt_used=util_data['cluster']['pcnt_used']
+                ).save()
+
                 for raw_pool in sync_object.get('pools', []):
                     LOG.info("Updating Pool %s" % raw_pool['pool_name'])
                     for pool in util_data['pools']:
