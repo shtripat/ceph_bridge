@@ -150,8 +150,8 @@ namespace.tendrl.ceph_integration:
           type: String
 
       enabled: true
-      list: clusters/$TendrlContext.integration_id/ec_profiles
-      value: clusters/$TendrlContext.integration_id/ec_profiles/$ECProfile.name
+      list: clusters/$TendrlContext.integration_id/ECProfiles
+      value: clusters/$TendrlContext.integration_id/ECProfiles/$ECProfile.name
       help: EC profile
 
     Rbd:
@@ -251,8 +251,8 @@ namespace.tendrl.ceph_integration:
           type: int
       help: "Rbd"
       enabled: true
-      value: clusters/$TendrlContext.integration_id/Pools/$Pool.pool_id/rbds/$Rbd.name
-      list: clusters/$TendrlContext.integration_id/Pools/$Pool.pool_id/rbds
+      value: clusters/$TendrlContext.integration_id/Pools/$Pool.pool_id/Rbds/$Rbd.name
+      list: clusters/$TendrlContext.integration_id/Pools/$Pool.pool_id/Rbds
 
     Pool:
       atoms:

@@ -1,11 +1,8 @@
 import logging
 
 from tendrl.ceph_integration.manager.request_factory import RequestFactory
-#from tendrl.ceph_integration.manager.user_request import OsdMapModifyingRequest
-#from tendrl.ceph_integration.manager.user_request import PgCreatingRequest
 from tendrl.ceph_integration.manager.user_request import RbdCreatingRequest
 from tendrl.ceph_integration.manager.user_request import RbdMapModifyingRequest
-#from tendrl.ceph_integration.types import Config
 from tendrl.ceph_integration.types import OsdMap
 
 

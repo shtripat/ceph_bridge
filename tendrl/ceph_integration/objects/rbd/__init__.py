@@ -8,7 +8,7 @@ class Rbd(objects.CephIntegrationBaseObject):
                  used=None, *args, **kwargs):
         super(Rbd, self).__init__(*args, **kwargs)
 
-        self.value = 'clusters/%s/Pools/%s/rbds/%s'
+        self.value = 'clusters/%s/Pools/%s/Rbds/%s'
         self.name = name
         self.size = size
         self.pool_id = pool_id
@@ -21,7 +21,7 @@ class Rbd(objects.CephIntegrationBaseObject):
 class _Rbd(EtcdObj):
     """A table of the Pool, lazily updated
     """
-    __name__ = 'clusters/%s/Pools/%s/rbds/%s'
+    __name__ = 'clusters/%s/Pools/%s/Rbds/%s'
     _tendrl_cls = Rbd
 
     def render(self):

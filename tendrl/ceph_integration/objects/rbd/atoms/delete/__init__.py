@@ -18,7 +18,7 @@ class Delete(objects.CephIntegrationBaseAtom):
         )
 
         tendrl_ns.etcd_orm.client.delete(
-            "clusters/%s/Pools/%s/rbds/%s" % (
+            "clusters/%s/Pools/%s/Rbds/%s" % (
                 tendrl_ns.tendrl_context.integration_id,
                 self.parameters['Rbd.pool_id'],
                 self.parameters['Rbd.name']

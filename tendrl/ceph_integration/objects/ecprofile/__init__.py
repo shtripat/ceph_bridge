@@ -10,9 +10,13 @@ class ECProfile(objects.CephIntegrationBaseObject):
                  *args, **kwargs):
         super(ECProfile, self).__init__(*args, **kwargs)
 
-        self.value = 'clusters/%s/ec_profiles/%s'
+        self.value = 'clusters/%s/ECProfiles/%s'
         self.name = name
+        # The no of data chunks
         self.k = k
+        # The no of coding chunks
+        # It means that `m` OSDs could be out without losing any data out of
+        # total k+m
         self.m = m
         self.plugin = plugin
         self.directory = directory
@@ -21,7 +25,7 @@ class ECProfile(objects.CephIntegrationBaseObject):
 
 
 class _ECProfile(EtcdObj):
-    __name__ = 'clusters/%s/ec_profiles/%s'
+    __name__ = 'clusters/%s/ECProfiles/%s'
     _tendrl_cls = ECProfile
 
     def render(self):

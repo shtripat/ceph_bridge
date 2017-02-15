@@ -12,7 +12,7 @@ class Delete(objects.CephIntegrationBaseAtom):
         crud = Crud()
         crud.delete("ec_profile", self.parameters['ECProfile.name'])
         tendrl_ns.etcd_orm.client.delete(
-            "clusters/%s/ec_profiles/%s" % (
+            "clusters/%s/ECProfiles/%s" % (
                 tendrl_ns.tendrl_context.integration_id,
                 self.parameters['ECProfile.name']
             ),
