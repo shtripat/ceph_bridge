@@ -7,6 +7,7 @@ from pytz import utc
 
 from tendrl.commons import sds_sync
 from tendrl.ceph_integration import ceph
+from tendrl.ceph_integration.manager.crud import Crud
 from tendrl.ceph_integration.manager.crush_node_request_factory import \
     CrushNodeRequestFactory
 from tendrl.ceph_integration.manager.crush_request_factory import \
@@ -145,6 +146,12 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         ```
 
         """
+        required_ec_profiles = [
+            (2, 1),
+            (4, 2),
+            (6, 3),
+            (8, 4)
+        ]
         ec_profile_details = {}
 
         commands = [
@@ -172,7 +179,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                             info[item.split('=')[0]] = \
                                 item.split('=')[1].strip()
                             ec_profile_details[ec_profile] = info
-
+        available_ec_profiles = []
         for k, v in ec_profile_details.iteritems():
             tendrl_ns.ceph_integration.objects.ECProfile(
                 name=k,
@@ -182,6 +189,23 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                 directory=v.get('directory'),
                 ruleset_failure_domain=v.get('ruleset_failure_domain')
             ).save()
+            available_ec_profiles.append((int(v['k']), int(v['m'])))
+
+        # Create the missing ec_profile_details
+        missing_ec_profiles = [
+            item for item in required_ec_profiles
+            if item not in available_ec_profiles
+        ]
+        for item in missing_ec_profiles:
+            attrs = dict(
+                name="k%sm%s" % (item[0], item[1]),
+                k=item[0],
+                m=item[1],
+                plugin='jerasure',
+                directory='/usr/lib/ceph/erasure-code'
+            )
+            crud = Crud()
+            crud.create("ec_profile", attrs)
 
     def on_sync_object(self, data):
 
