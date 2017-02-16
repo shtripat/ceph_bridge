@@ -38,3 +38,6 @@ class CephIntegrationEtcdCentralStore(central_store.EtcdCentralStore):
 
     def save_ecprofile(self, ec_profile):
         tendrl_ns.etcd_orm.save(ec_profile)
+
+    def save_utilization(self, utilization):
+        tendrl_ns.etcd_orm.save(utilization)
