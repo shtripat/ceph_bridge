@@ -26,6 +26,8 @@ class Update(objects.CephIntegrationBaseAtom):
             attrs['pg_num'] = self.parameters.get('Pool.pg_num')
         if 'Pool.size' in self.parameters:
             attrs['size'] = self.parameters.get('Pool.size')
+	if 'Pool.min_size' in self.parameters:
+            attrs['min_size'] = self.parameters.get('Pool.min_size')
         if 'Pool.quota_enabled' in self.parameters and \
             self.parameters['Pool.quota_enabled'] is True:
             attrs['quota_max_objects'] = \

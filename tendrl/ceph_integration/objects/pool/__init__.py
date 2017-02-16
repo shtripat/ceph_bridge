@@ -4,7 +4,7 @@ from tendrl.ceph_integration import objects
 
 class Pool(objects.CephIntegrationBaseObject):
     def __init__(self, pool_id=None,
-                 pool_name=None, pg_num=None, min_size=None,
+                 pool_name=None, pg_num=None, min_size=None, size=None,
                  used=None, percent_used=None,
                  deleted=None, type=None,
                  erasure_code_profile=None,
@@ -17,6 +17,7 @@ class Pool(objects.CephIntegrationBaseObject):
         self.pool_name = pool_name
         self.pg_num = pg_num
         self.min_size = min_size
+        self.size = size
         self.used = used
         self.percent_used = percent_used
         self.deleted = deleted
