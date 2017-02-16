@@ -16,6 +16,12 @@ namespace.tendrl.ceph_integration:
           - TendrlContext.sds_name
           - TendrlContext.sds_version
           - TendrlContext.integration_id
+        optional:
+          - Pool.type
+          - Pool.erasure_code_profile
+          - Pool.quota_enabled
+          - Pool.quota_max_objects
+          - Pool.quota_max_bytes
       run: tendrl.ceph_integration.flows.create_pool.CreatePool
       type: Create
       uuid: faeab231-69e9-4c9d-b5ef-a67ed057f98b
