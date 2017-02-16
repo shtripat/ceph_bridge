@@ -7,7 +7,7 @@ class CrushRequestFactory(RequestFactory):
         commands = [('osd setcrushmap', {'data': attributes})]
         message = "Replacing CRUSH map in"
         " {cluster_name}".format(
-            cluster_name=self._cluster_monitor.name
+            cluster_name=tendrl_ns.state_sync_thread.name
         )
         return OsdMapModifyingRequest(
             message,
