@@ -256,6 +256,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         type=pool_type,
                         erasure_code_profile=raw_pool.get('erasure_code_profile'),
                         min_size=raw_pool['min_size'],
+                        size=raw_pool.get('size', None),
                         quota_enabled=quota_enabled,
                         quota_max_objects=raw_pool['quota_max_objects'],
                         quota_max_bytes=raw_pool['quota_max_bytes'],

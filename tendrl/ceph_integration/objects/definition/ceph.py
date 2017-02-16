@@ -12,6 +12,7 @@ namespace.tendrl.ceph_integration:
           - Pool.poolname
           - Pool.pg_num
           - Pool.min_size
+          - Pool.size
           - TendrlContext.sds_name
           - TendrlContext.sds_version
           - TendrlContext.integration_id
@@ -264,6 +265,7 @@ namespace.tendrl.ceph_integration:
               - Pool.poolname
               - Pool.pg_num
               - Pool.min_size
+              - Pool.size
             optional:
               - Pool.type
               - Pool.erasure_code_profile
@@ -293,6 +295,7 @@ namespace.tendrl.ceph_integration:
             optional:
               - Pool.poolname
               - Pool.size
+              - Pool.min_size
               - Pool.pg_num
               - Pool.quota_enabled
               - Pool.quota_max_objects
@@ -327,6 +330,7 @@ namespace.tendrl.ceph_integration:
             optional:
               - Pool.poolname
               - Pool.size
+              - Pool.min_size
               - Pool.pg_num
               - Pool.quota_enabled
               - Pool.quota_max_objects
@@ -342,7 +346,7 @@ namespace.tendrl.ceph_integration:
           help: "For erasure pools only.It must be an existing profile "
           type: String
         min_size:
-          help: "sets the number of replicas for objects in the pool"
+          help: "Sets the minimum number of replicas required for I/O in degraded state"
           type: Integer
         pg_num:
           help: "The total number of placement groups for placement purposes."
@@ -359,9 +363,6 @@ namespace.tendrl.ceph_integration:
         type:
           help: "Type of the Ceph pool(ec or replicated)"
           type: String
-        replica_count:
-          help: "Replica count of volume"
-          type: Integer
         size:
           help: "Sets the minimum number of replicas required for I/O"
           type: Integer

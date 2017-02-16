@@ -12,6 +12,7 @@ class Create(objects.CephIntegrationBaseAtom):
         attrs = dict(name=self.parameters['Pool.poolname'],
                      pg_num=self.parameters['Pool.pg_num'],
                      min_size=self.parameters['Pool.min_size'],
+                     size=self.parameters['Pool.size'],
                      type=self.parameters.get('Pool.type'),
                      erasure_code_profile=self.parameters.get(
                          'Pool.erasure_code_profile'
