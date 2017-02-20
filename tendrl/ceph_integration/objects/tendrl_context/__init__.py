@@ -71,8 +71,11 @@ class TendrlContext(objects.CephIntegrationBaseObject):
             return None
 
     def _get_sds_details(self):
+        # Run the command `ceph --version` which works seamlessly on OSD nodes
+        # as well, rather than running `ceph version -f json`. This command can
+        # worok only on monitor nodes.
         cmd = subprocess.Popen(
-            "ceph version -f json",
+            "ceph --version",
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
@@ -82,11 +85,14 @@ class TendrlContext(objects.CephIntegrationBaseObject):
             LOG.info("ceph not installed on host")
             return None
 
+        # The output format from the command `ceph --version` is
+        # `ceph version 10.2.5 (c461ee19ecbc0c5c330aca20f7392c9a00730367)`
+        # We just split the output on space and take the required values
         if out:
-            details = json.loads(out)
+            details = out.split()
 
-            version = details['version'].split()[2]
-            name = details['version'].split()[0]
+            version = details[2]
+            name = details[0]
             return name, version
 
 
