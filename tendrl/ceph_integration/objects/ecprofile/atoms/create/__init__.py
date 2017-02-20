@@ -1,6 +1,8 @@
 from tendrl.ceph_integration.manager.crud import Crud
 from tendrl.ceph_integration import objects
 from tendrl.ceph_integration.objects.ecprofile import ECProfile
+from tendrl.commons.event import Event
+from tendrl.commons.message import Message
 
 
 class Create(objects.CephIntegrationBaseAtom):
@@ -25,6 +27,52 @@ class Create(objects.CephIntegrationBaseAtom):
                      plugin=plugin,
                      directory=directory
                      )
+        Event(
+            Message(
+                priority="info",
+                publisher=tendrl_ns.publisher_id,
+                payload={
+                    "message": "Creating ec-profile %s" %
+                    self.parameters['ECProfile.name'],
+                },
+                request_id=self.parameters['request_id'],
+                flow_id=self.parameters["flow_id"],
+                cluster_id=tendrl_ns.tendrl_context.integration_id,
+            )
+        )
+
         crud = Crud()
-        crud.create("ec_profile", attrs)
+        ret_val = crud.create("ec_profile", attrs)
+        if ret_val['response'] is not None and \
+            ret_val['response']['error'] is True:
+            Event(
+                Message(
+                    priority="info",
+                    publisher=tendrl_ns.publisher_id,
+                    payload={
+                        "message": "Failed to create ec-profile %s."
+                        " Error: %s" % (self.parameters['ECProfile.name'],
+                                        ret_val['error_status'])
+                    },
+                    request_id=self.parameters['request_id'],
+                    flow_id=self.parameters["flow_id"],
+                    cluster_id=tendrl_ns.tendrl_context.integration_id,
+                )
+            )
+            return False
+
+        Event(
+            Message(
+                priority="info",
+                publisher=tendrl_ns.publisher_id,
+                payload={
+                    "message": "Successfully created ec-profile %s" %
+                    self.parameters['ECProfile.name'],
+                },
+                request_id=self.parameters['request_id'],
+                flow_id=self.parameters["flow_id"],
+                cluster_id=tendrl_ns.tendrl_context.integration_id,
+            )
+        )
+
         return True

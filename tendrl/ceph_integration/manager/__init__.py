@@ -32,6 +32,7 @@ def main():
     tendrl_ns.tendrl_context.save()
     tendrl_ns.definitions.save()
     tendrl_ns.config.save()
+    tendrl_ns.publisher_id = "ceph_integration"
 
     m = CephIntegrationManager()
     m.start()
