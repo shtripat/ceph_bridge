@@ -30,10 +30,27 @@ class Delete(objects.CephIntegrationBaseAtom):
         )
 
         crud = RbdCrud()
-        crud.delete_rbd(
+        ret_val = crud.delete_rbd(
             pool_id,
             rbd_name
         )
+        if ret_val['response'] is not None and \
+            ret_val['response']['error'] is True:
+            Event(
+                Message(
+                    priority="info",
+                    publisher=tendrl_ns.publisher_id,
+                    payload={
+                        "message": "Failed to delete rbd %s."
+                        " Error: %s" % (self.parameters['Rbd.name'],
+                                        ret_val['error_status'])
+                    },
+                    request_id=self.parameters['request_id'],
+                    flow_id=self.parameters["flow_id"],
+                    cluster_id=tendrl_ns.tendrl_context.integration_id,
+                )
+            )
+            return False
 
         tendrl_ns.etcd_orm.client.delete(
             "clusters/%s/Pools/%s/Rbds/%s" % (

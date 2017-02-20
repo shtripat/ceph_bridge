@@ -28,10 +28,27 @@ class Delete(objects.CephIntegrationBaseAtom):
         )
 
         crud = Crud()
-        crud.delete(
+        ret_val = crud.delete(
             "pool",
             pool_id
         )
+        if ret_val['response'] is not None and \
+            ret_val['response']['error'] is True:
+            Event(
+                Message(
+                    priority="info",
+                    publisher=tendrl_ns.publisher_id,
+                    payload={
+                        "message": "Failed to delete pool %s."
+                        " Error: %s" % (self.parameters['Pool.poolname'],
+                                        ret_val['error_status'])
+                    },
+                    request_id=self.parameters['request_id'],
+                    flow_id=self.parameters["flow_id"],
+                    cluster_id=tendrl_ns.tendrl_context.integration_id,
+                )
+            )
+            return False
 
         tendrl_ns.ceph_integration.objects.Pool(
             pool_id=pool_id,
