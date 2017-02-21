@@ -50,10 +50,14 @@ class Delete(objects.CephIntegrationBaseAtom):
             )
             return False
 
-        tendrl_ns.ceph_integration.objects.Pool(
-            pool_id=pool_id,
-            deleted="True"
-        ).save()
+        # TODO(shtripat) Use namespace tree and not etcd orm later
+        tendrl_ns.etcd_orm.client.delete(
+            "clusters/%s/Pools/%s" % (
+                tendrl_ns.tendrl_context.integration_id,
+                self.parameters['Pool.pool_id']
+            ),
+            recursive=True
+        )
 
         Event(
             Message(

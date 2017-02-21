@@ -20,11 +20,6 @@ class Update(objects.CephIntegrationBaseAtom):
             obj = Pool(
                 pool_id=pool_id
             )
-            fetched_pool = tendrl_ns.etcd_orm.read(obj)
-            if fetched_pool.pg_num > self.parameters.get('Pool.pg_num'):
-                raise AtomExecutionFailedError(
-                    "New pg-num cannot be less than existing value"
-                )
             attrs['pg_num'] = self.parameters.get('Pool.pg_num')
         if 'Pool.size' in self.parameters:
             attrs['size'] = self.parameters.get('Pool.size')
