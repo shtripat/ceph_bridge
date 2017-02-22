@@ -9,6 +9,7 @@ from tendrl.ceph_integration import objects
 
 LOG = logging.getLogger(__name__)
 
+DEFAULT_CEPH_CLUSTER_NAME = "ceph"
 
 class TendrlContext(objects.CephIntegrationBaseObject):
     def __init__(self, integration_id=None, fsid=None, *args, **kwargs):
@@ -24,7 +25,7 @@ class TendrlContext(objects.CephIntegrationBaseObject):
         self._etcd_cls = _TendrlContextEtcd
 
     def _get_integration_name(self):
-        cluster_name = ""
+        cluster_name = DEFAULT_CEPH_CLUSTER_NAME
         # TODO(team) This file is valid for CentOS and RHEL. Needs to
         # be handled while ubuntu support is needed.
         ceph_cfg_file = "/etc/sysconfig/ceph"
@@ -35,7 +36,7 @@ class TendrlContext(objects.CephIntegrationBaseObject):
         with open(ceph_cfg_file) as f:
             for line in f:
                 if line.startswith("CLUSTER="):
-                    cluster_name = line.split('\n')[0].split('=')[1]
+                    cluster_name = line.split('\n')[0].split('=')[-1]
                     break
         return cluster_name
 
