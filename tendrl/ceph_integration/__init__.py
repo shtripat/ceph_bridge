@@ -13,6 +13,7 @@ from tendrl.ceph_integration.objects.node_context import NodeContext
 
 from tendrl.ceph_integration.flows.create_ec_profile import CreateECProfile
 from tendrl.ceph_integration.flows.create_pool import CreatePool
+from tendrl.ceph_integration.objects.global_details import GlobalDetails
 from tendrl.ceph_integration.objects.ecprofile.atoms.create import Create
 from tendrl.ceph_integration.objects.ecprofile.atoms.delete import Delete
 from tendrl.ceph_integration.objects.pool import Pool
