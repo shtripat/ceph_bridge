@@ -17,10 +17,14 @@ class Update(objects.CephIntegrationBaseAtom):
         if 'Pool.poolname' in self.parameters:
             attrs['name'] = self.parameters.get('Pool.poolname')
         if 'Pool.pg_num' in self.parameters:
-            obj = Pool(
-                pool_id=pool_id
-            )
+            fetched_obj = Pool(
+                pool_id=self.parameters['Pool.pool_id']
+            ).load()
             attrs['pg_num'] = self.parameters.get('Pool.pg_num')
+            if attrs['pg_num'] <= fetched_obj.pg_num:
+                raise AtomExecutionFailedError(
+                    "New pg-num cannot be less than existing value"
+                )
         if 'Pool.size' in self.parameters:
             attrs['size'] = self.parameters.get('Pool.size')
         if 'Pool.min_size' in self.parameters:
