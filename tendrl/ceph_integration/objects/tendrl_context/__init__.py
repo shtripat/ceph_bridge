@@ -20,7 +20,24 @@ class TendrlContext(objects.CephIntegrationBaseObject):
         self.integration_id = integration_id or self._get_local_integration_id()
         self.fsid = fsid or self._get_local_fsid()
         self.sds_name, self.sds_version = self._get_sds_details()
+        self.integration_name = self._get_integration_name()
         self._etcd_cls = _TendrlContextEtcd
+
+    def _get_integration_name(self):
+        cluster_name = ""
+        # TODO(team) This file is valid for CentOS and RHEL. Needs to
+        # be handled while ubuntu support is needed.
+        ceph_cfg_file = "/etc/sysconfig/ceph"
+        if not os.path.exists(ceph_cfg_file):
+            LOG.warning("config file: %s not found" % ceph_cfg_file)
+            return cluster_name
+
+        with open(ceph_cfg_file) as f:
+            for line in f:
+                if line.startswith("CLUSTER="):
+                    cluster_name = line.split('\n')[0].split('=')[1]
+                    break
+        return cluster_name
 
     def create_local_integration_id(self):
         tendrl_context_path = "/etc/tendrl/ceph-integration/integration_id"
