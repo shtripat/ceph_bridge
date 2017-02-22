@@ -1,4 +1,5 @@
 from glob import glob
+import gevent.event
 import hashlib
 import json
 import os
@@ -380,9 +381,14 @@ def rbd_command(command_args, pool_name=None):
 
     p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                          stdin=open(os.devnull, "r"))
+    if p.poll() is None: # Force kill if process is still alive
+        gevent.sleep(2)
+        if p.poll() is None:
+            p.kill()
+            return {'out': "", 'err': "rbd command timed out", 'status': 1}
+
     stdout, stderr = p.communicate()
     status = p.returncode
-
     return {
         'out': stdout,
         'err': stderr,
