@@ -160,7 +160,6 @@ class PoolRequestFactory(RequestFactory):
             return PgCreatingRequest(
                 "Growing pool '{name}' to {size} PGs".format(
                     name=pool_name, size=final_pg_count),
-                tendrl_ns.state_sync_thread.fsid, tendrl_ns.state_sync_thread.name,
                 pre_create_commands,
                 pool_id, pool_name, pgp_num,
                 initial_pg_count, final_pg_count, block_size)

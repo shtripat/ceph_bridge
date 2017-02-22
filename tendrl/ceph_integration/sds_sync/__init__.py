@@ -409,12 +409,12 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     index += 1
                     if index >= len(lines):
                         LOG.warning("No cluster stats to parse")
-                        return cluster_stat
+                        return {'cluster': cluster_stat, 'pools': {}}
                     line = lines[index]
                     cluster_fields = line.split()
                     if len(cluster_fields) < 4:
                         LOG.warning("Missing fields in cluster stat")
-                        return cluster_stat
+                        return {'cluster': cluster_stat, 'pools': {}}
                     cluster_stat['total'] = self._to_bytes(
                         cluster_fields[cluster_size_idx]
                     )
@@ -432,7 +432,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     index += 1
                     if index >= len(lines):
                         LOG.warning("No pool stats to parse")
-                        return cluster_stat
+                        return {'cluster': cluster_stat, 'pools': {}}
                     pool_fields = lines[index].split()
                     pool_name_idx = self._idx_in_list(pool_fields, 'NAME')
                     pool_id_idx = self._idx_in_list(pool_fields, 'ID')
@@ -449,14 +449,14 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         pool_used_idx == -1 or pool_pcnt_used_idx == -1 or \
                         pool_max_avail_idx == -1:
                         LOG.warning("Missing fields in pool stat")
-                        return cluster_stat
+                        return {'cluster': cluster_stat, 'pools': {}}
                     index += 1
                 if pool_stat_available is True:
                     line = lines[index]
                     pool_fields = line.split()
                     if len(pool_fields) < 5:
                         LOG.warning("Missing fields in pool stat")
-                        return cluster_stat
+                        return {'cluster': cluster_stat, 'pools': {}}
                     dict = {}
                     dict['name'] = pool_fields[pool_name_idx]
                     dict['available'] = self._to_bytes(
