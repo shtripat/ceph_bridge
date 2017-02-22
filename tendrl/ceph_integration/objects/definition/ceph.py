@@ -407,6 +407,9 @@ namespace.tendrl.ceph_integration:
         integration_id:
           help: "Tendrl managed/generated cluster id for the sds being managed by Tendrl"
           type: String
+        integration_name:
+          help: "cluster name of the sds being managed by Tendrl"
+          type: String
         sds_name:
           help: gluster|ceph
           type: String
