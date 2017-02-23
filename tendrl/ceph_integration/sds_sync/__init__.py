@@ -224,6 +224,10 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                                                          int) else None,
                 when=now(), data=sync_object).save()
 
+            if sync_type.str == "health":
+                tendrl_ns.ceph_integration.objects.GlobalDetails(
+                    status=sync_object['overall_status']
+                ).save()
             if sync_type.str == "osd_map":
                 util_data = self._get_utilization_data()
                 tendrl_ns.ceph_integration.objects.Utilization(

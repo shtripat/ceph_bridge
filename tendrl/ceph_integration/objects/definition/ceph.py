@@ -43,6 +43,15 @@ namespace.tendrl.ceph_integration:
       type: Create
       uuid: faeab231-69e9-4c9d-b5ef-a67ed057f98d
   objects:
+    GlobalDetails:
+      attrs:
+        status:
+          help: Cluster status
+          type: String
+      enabled: true
+      list: clusters/$TendrlContext.integration_id/GlobalDetails
+      value: clusters/$TendrlContext.integration_id/GlobalDetails
+      help: Cluster global details
     NodeContext:
       attrs:
         machine_id:
