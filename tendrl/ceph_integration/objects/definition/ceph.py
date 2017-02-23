@@ -319,6 +319,24 @@ namespace.tendrl.ceph_integration:
           run: tendrl.ceph_integration.objects.Pool.atoms.update.Update
           type: Update
           uuid: 9a2df258-9b24-4fd3-a66f-ee346e2e3721
+        ValidUpdateParameters:
+          enabled: true
+          help: if update parametsr are valid
+          inputs:
+            mandatory:
+              - Pool.pool_id
+            optional:
+              - Pool.poolname
+              - Pool.size
+              - Pool.min_size
+              - Pool.pg_num
+              - Pool.quota_enabled
+              - Pool.quota_max_objects
+              - Pool.quota_max_bytes
+          name: Valid update parameters
+          run: tendrl.ceph_integration.objects.Pool.atoms.valid_update_parameters.ValidUpdateParameters
+          type: Get
+          uuid: 9a2df258-9b24-4fd3-a66f-ee346e2e3791
       flows:
         DeletePool:
           atoms:
@@ -350,6 +368,8 @@ namespace.tendrl.ceph_integration:
               - Pool.quota_enabled
               - Pool.quota_max_objects
               - Pool.quota_max_bytes
+          pre_run:
+            - tendrl.ceph_integration.objects.Pool.atoms.valid_update_parametsrs.ValidUpdateParameters
           run: tendrl.ceph_integration.objects.Pool.flows.update_pool.UpdatePool
           type: Update
           uuid: 4ac41d8f-a0cf-420a-b2fe-18761e07f3b2

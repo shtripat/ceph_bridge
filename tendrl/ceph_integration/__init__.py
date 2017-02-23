@@ -24,6 +24,8 @@ from tendrl.ceph_integration.objects.ecprofile.flows.delete_ec_profile import \
 from tendrl.ceph_integration.objects.pool.atoms.create import Create
 from tendrl.ceph_integration.objects.pool.atoms.delete import Delete
 from tendrl.ceph_integration.objects.pool.atoms.update import Update
+from tendrl.ceph_integration.objects.pool.atoms.valid_update_parameters \
+    import ValidUpdateParameters
 from tendrl.ceph_integration.objects.rbd.atoms.create import Create
 from tendrl.ceph_integration.objects.rbd.atoms.delete import Delete
 from tendrl.ceph_integration.objects.rbd.atoms.resize import Resize
