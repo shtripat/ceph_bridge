@@ -2,6 +2,7 @@ from tendrl.ceph_integration import objects
 from tendrl.ceph_integration.objects.pool import Pool
 from tendrl.commons.event import Event
 from tendrl.commons.message import Message
+from tendrl.commons.objects.atoms import AtomExecutionFailedError
 
 
 class ValidUpdateParameters(objects.CephIntegrationBaseAtom):
