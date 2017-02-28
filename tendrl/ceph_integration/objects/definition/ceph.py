@@ -405,9 +405,6 @@ namespace.tendrl.ceph_integration:
           inputs:
             mandatory:
               - Pool.pool_id
-              - TendrlContext.sds_name
-              - TendrlContext.sds_version
-              - TendrlContext.integration_id
           pre_run:
             - tendrl.ceph_integration.objects.Pool.atoms.pool_exists.PoolExists
           run: tendrl.ceph_integration.objects.Pool.flows.delete_pool.DeletePool
