@@ -13,9 +13,6 @@ namespace.tendrl.ceph_integration:
           - Pool.pg_num
           - Pool.min_size
           - Pool.size
-          - TendrlContext.sds_name
-          - TendrlContext.sds_version
-          - TendrlContext.integration_id
         optional:
           - Pool.type
           - Pool.erasure_code_profile
