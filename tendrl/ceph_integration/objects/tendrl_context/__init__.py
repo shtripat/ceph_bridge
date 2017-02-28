@@ -96,7 +96,8 @@ class TendrlContext(objects.CephIntegrationBaseObject):
             "ceph --version",
             shell=True,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            stderr=subprocess.PIPE,
+            close_fds=True
         )
         out, err = cmd.communicate()
         if err and 'command not found' in err:
