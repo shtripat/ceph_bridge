@@ -116,8 +116,8 @@ def admin_socket(asok_path, cmd, fmt=''):
 
         """
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        sock.connect(path)
         try:
+            sock.connect(path)
             sock.sendall(cmd + '\0')
             len_str = sock.recv(4)
             if len(len_str) < 4:
@@ -133,6 +133,8 @@ def admin_socket(asok_path, cmd, fmt=''):
 
         except Exception as e:
             raise AdminSocketError('exception: ' + str(e))
+        finally:
+            sock.close()
         return ret
 
     try:
@@ -249,7 +251,10 @@ def transform_crushmap(data, operation):
             return 1, '', 'Did not specify get or set'
 
         p = subprocess.Popen(
-            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            close_fds=True
         )
         stdout, stderr = p.communicate()
         return p.returncode, stdout, stderr
@@ -319,6 +324,7 @@ def rados_commands(fsid, cluster_name, commands):
     # talk to RADOS enough to get version info
     versions = cluster_status(cluster_handle, cluster_name)['versions']
 
+    cluster_handle.shutdown()
     # Success
     return {
         'error': False,
@@ -349,8 +355,13 @@ def ceph_command(cluster_name, command_args):
     else:
         args = ["ceph"] + command_args
 
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                         stdin=open(os.devnull, "r"))
+    p = subprocess.Popen(
+        args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        stdin=open(os.devnull, "r"),
+        close_fds=True
+    )
     stdout, stderr = p.communicate()
     status = p.returncode
 
@@ -379,8 +390,13 @@ def rbd_command(command_args, pool_name=None):
     else:
         args = ["rbd"] + command_args
 
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                         stdin=open(os.devnull, "r"))
+    p = subprocess.Popen(
+        args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        stdin=open(os.devnull, "r"),
+        close_fds=True
+    )
     if p.poll() is None: # Force kill if process is still alive
         gevent.sleep(2)
         if p.poll() is None:
@@ -411,7 +427,12 @@ def radosgw_admin_command(command_args):
 
     args = ["radosgw-admin"] + command_args
 
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(
+        args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        close_fds=True
+    )
     stdout, stderr = p.communicate()
     status = p.returncode
 
@@ -552,6 +573,7 @@ def get_cluster_object(cluster_name, sync_type):
                 updated_osd_metadata['osd'] = osd_id
                 data['osd_metadata'].append(updated_osd_metadata)
 
+    cluster_handle.shutdown()
     return {
         'type': sync_type,
         'fsid': fsid,
@@ -665,6 +687,7 @@ def get_heartbeats():
             # from our report
             pass
 
+    cluster_handle.shutdown()
     return ceph_version, cluster_heartbeat
 
 
