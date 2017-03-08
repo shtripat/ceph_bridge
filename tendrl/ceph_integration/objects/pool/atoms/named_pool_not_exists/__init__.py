@@ -26,9 +26,14 @@ class NamedPoolNotExists(objects.CephIntegrationBaseAtom):
             )
         )
 
-        pools = tendrl_ns.etcd_orm.client.read(
-            "clusters/%s/Pools" % tendrl_ns.tendrl_context.integration_id
-        )
+        try:
+            pools = tendrl_ns.etcd_orm.client.read(
+                "clusters/%s/Pools" % tendrl_ns.tendrl_context.integration_id
+            )
+        except etcd.EtcdKeyNotFound:
+            # No pools available in cluster, return True
+            return True
+
         for pool in pools._children:
             fetched_pool = Pool(
                 pool_id=pool['key'].split('/')[-1]
