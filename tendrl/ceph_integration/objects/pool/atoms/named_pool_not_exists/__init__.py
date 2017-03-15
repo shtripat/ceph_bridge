@@ -1,12 +1,12 @@
 import etcd
 
-from tendrl.ceph_integration import objects
+from tendrl.commons import objects
 from tendrl.ceph_integration.objects.pool import Pool
 from tendrl.commons.event import Event
 from tendrl.commons.message import Message
 
 
-class NamedPoolNotExists(objects.CephIntegrationBaseAtom):
+class NamedPoolNotExists(objects.BaseAtom):
     obj = Pool
     def __init__(self, *args, **kwargs):
         super(NamedPoolNotExists, self).__init__(*args, **kwargs)
@@ -15,14 +15,14 @@ class NamedPoolNotExists(objects.CephIntegrationBaseAtom):
         Event(
             Message(
                 priority="info",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={
                     "message": "Checking if pool with name %s doesnt exist" %
                     self.parameters['Pool.poolname']
                 },
-                request_id=self.parameters['request_id'],
+                job_id=self.parameters['job_id'],
                 flow_id=self.parameters['flow_id'],
-                cluster_id=tendrl_ns.tendrl_context.integration_id,
+                cluster_id=NS.tendrl_context.integration_id,
             )
         )
 
@@ -43,14 +43,14 @@ class NamedPoolNotExists(objects.CephIntegrationBaseAtom):
                 Event(
                     Message(
                         priority="info",
-                        publisher=tendrl_ns.publisher_id,
+                        publisher=NS.publisher_id,
                         payload={
                             "message": "Pool with name %s already exists" %
                             self.parameters['Pool.poolname']
                         },
-                        request_id=self.parameters['request_id'],
+                        job_id=self.parameters['job_id'],
                         flow_id=self.parameters['flow_id'],
-                        cluster_id=tendrl_ns.tendrl_context.integration_id,
+                        cluster_id=NS.tendrl_context.integration_id,
                     )
                 )
                 return False
