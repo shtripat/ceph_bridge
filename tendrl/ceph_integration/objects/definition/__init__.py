@@ -4,7 +4,6 @@ import importlib
 import os
 
 import namespaces as ns
-import ruamel.yaml
 
 from tendrl.commons import objects
 from tendrl.commons import etcdobj
