@@ -1,5 +1,3 @@
-# flake8: noqa
-data = """---
 namespace.tendrl.ceph_integration:
   flows:
     CreatePool:
@@ -510,4 +508,3 @@ namespace.tendrl.ceph_integration:
       enabled: true
       value: clusters/$TendrlContext.integration_id/TendrlContext/
 tendrl_schema_version: 0.3
-"""
