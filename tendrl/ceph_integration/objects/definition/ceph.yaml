@@ -1,4 +1,4 @@
-namespace.tendrl.ceph_integration:
+namespace.ceph:
   flows:
     CreatePool:
       atoms:
