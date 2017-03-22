@@ -1,5 +1,6 @@
 import logging
 
+import etcd
 import gevent.event
 import signal
 
@@ -35,6 +36,17 @@ def main():
     NS.state_sync_thread = sds_sync.CephIntegrationSdsSyncStateThread()
 
     NS.node_context.save()
+    
+    # Check if Integration is part of any Tendrl imported/created sds cluster
+    try:
+        NS.tendrl_context = NS.tendrl_context.load()
+        LOG.info("Integration %s is part of sds cluster",
+                 NS.tendrl_context.integration_id)
+    except etcd.EtcdKeyNotFound:
+        LOG.error("Node %s is not part of any sds cluster",
+                 NS.node_context.node_id)
+        raise Exception("Integration cannot be started, please Import or Create sds cluster in Tendrl and include Node %s" % NS.node_context.node_id)
+
     NS.tendrl_context.save()
     NS.ceph_integration.definitions.save()
     NS.ceph_integration.config.save()
