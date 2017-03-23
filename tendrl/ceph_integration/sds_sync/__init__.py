@@ -47,24 +47,23 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         self._sync_objects = SyncObjects(self.name)
 
     def _ping_cluster(self):
-        if NS.tendrl_context.fsid:
-            cluster_data = ceph.heartbeat(NS.tendrl_context.fsid)
-            NS.tendrl_context.fsid = self.fsid = cluster_data['fsid']
+        if hasattr(NS, "fsid"):
+            cluster_data = ceph.heartbeat(NS.fsid)
+            NS.fsid = self.fsid = cluster_data['fsid']
         else:
             cluster_data = ceph.heartbeat()
             if cluster_data:
                 if "fsid" in cluster_data:
-                    NS.tendrl_context.fsid = self.fsid = cluster_data['fsid']
-                    NS.tendrl_context.create_local_fsid()
+                    NS.fsid = self.fsid = cluster_data['fsid']
 
-        NS.tendrl_context.name = self.name = cluster_data['name']
+        NS.name = self.name = cluster_data['name']
 
     def _run(self):
         LOG.info("%s running" % self.__class__.__name__)
 
         while not self._complete.is_set():
             gevent.sleep(3)
-            cluster_data = ceph.heartbeat(NS.tendrl_context.fsid)
+            cluster_data = ceph.heartbeat(NS.fsid)
 
             self.on_heartbeat(cluster_data)
 
@@ -111,7 +110,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             ).value
             rbd_details = self._get_rbds(pool_name)
             for k,v in rbd_details.iteritems():
-                NS.ceph_integration.objects.Rbd(
+                NS.ceph.objects.Rbd(
                     name=k,
                     size=v['size'],
                     pool_id=pool_id,
@@ -159,7 +158,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         commands = [
             'osd', 'erasure-code-profile', 'ls'
         ]
-        cmd_out = ceph.ceph_command(NS.tendrl_context.name, commands)
+        cmd_out = ceph.ceph_command(NS.name, commands)
         if cmd_out['err'] == "":
             ec_profile_list = []
             for item in cmd_out['out'].split('\n'):
@@ -171,7 +170,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     'osd', 'erasure-code-profile', 'get', ec_profile
                 ]
                 cmd_out = ceph.ceph_command(
-                    NS.tendrl_context.name,
+                    NS.name,
                     commands
                 )
                 if cmd_out['err'] == "":
@@ -183,7 +182,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                             ec_profile_details[ec_profile] = info
         available_ec_profiles = []
         for k, v in ec_profile_details.iteritems():
-            NS.ceph_integration.objects.ECProfile(
+            NS.ceph.objects.ECProfile(
                 name=k,
                 k=v['k'],
                 m=v['m'],
@@ -220,19 +219,19 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             data['type'], data['version'], sync_object
         )
         if new_object:
-            NS.ceph_integration.objects.SyncObject(
+            NS.ceph.objects.SyncObject(
                 updated=now(), sync_type=sync_type.str,
                 version=new_object.version if isinstance(new_object.version,
                                                          int) else None,
                 when=now(), data=data['data']).save()
 
             if sync_type.str == "health":
-                NS.ceph_integration.objects.GlobalDetails(
+                NS.ceph.objects.GlobalDetails(
                     status=sync_object['overall_status']
                 ).save()
             if sync_type.str == "osd_map":
                 util_data = self._get_utilization_data()
-                NS.ceph_integration.objects.Utilization(
+                NS.ceph.objects.Utilization(
                     total=util_data['cluster']['total'],
                     used=util_data['cluster']['used'],
                     available=util_data['cluster']['available'],
@@ -255,7 +254,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         ('quota_max_bytes' in raw_pool and
                          raw_pool['quota_max_bytes'] > 0):
                         quota_enabled = True
-                    NS.ceph_integration.objects.Pool(
+                    NS.ceph.objects.Pool(
                         pool_id=raw_pool['pool'],
                         pool_name=raw_pool['pool_name'],
                         pg_num=raw_pool['pg_num'],
