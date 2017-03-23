@@ -54,8 +54,6 @@ def main():
             "please Import or Create sds cluster in Tendrl "
             "and include Node %s" % NS.node_context.node_id
         )
-    
-    NS.tendrl_context.save()
     NS.ceph.definitions.save()
     NS.ceph.config.save()
     NS.publisher_id = "ceph_integration"

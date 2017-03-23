@@ -47,23 +47,24 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         self._sync_objects = SyncObjects(self.name)
 
     def _ping_cluster(self):
-        if hasattr(NS, "fsid"):
-            cluster_data = ceph.heartbeat(NS.fsid)
-            NS.fsid = self.fsid = cluster_data['fsid']
+        if NS.tendrl_context.cluster_id:
+            cluster_data = ceph.heartbeat(NS.tendrl_context.cluster_id)
+            NS.tendrl_context.cluster_id = self.fsid = cluster_data['fsid']
         else:
             cluster_data = ceph.heartbeat()
             if cluster_data:
                 if "fsid" in cluster_data:
-                    NS.fsid = self.fsid = cluster_data['fsid']
+                    NS.tendrl_context.cluster_id = self.fsid = cluster_data['fsid']
 
-        NS.name = self.name = cluster_data['name']
+        NS.tendrl_context.cluster_name = self.name = cluster_data['name']
+        NS.tendrl_context.save()
 
     def _run(self):
         LOG.info("%s running" % self.__class__.__name__)
 
         while not self._complete.is_set():
             gevent.sleep(3)
-            cluster_data = ceph.heartbeat(NS.fsid)
+            cluster_data = ceph.heartbeat(NS.tendrl_context.cluster_id)
 
             self.on_heartbeat(cluster_data)
 
@@ -158,7 +159,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         commands = [
             'osd', 'erasure-code-profile', 'ls'
         ]
-        cmd_out = ceph.ceph_command(NS.name, commands)
+        cmd_out = ceph.ceph_command(NS.tendrl_context.cluster_name, commands)
         if cmd_out['err'] == "":
             ec_profile_list = []
             for item in cmd_out['out'].split('\n'):
@@ -170,7 +171,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     'osd', 'erasure-code-profile', 'get', ec_profile
                 ]
                 cmd_out = ceph.ceph_command(
-                    NS.name,
+                    NS.tendrl_context.cluster_name,
                     commands
                 )
                 if cmd_out['err'] == "":
