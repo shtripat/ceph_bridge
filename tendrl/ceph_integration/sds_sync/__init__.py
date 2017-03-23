@@ -47,7 +47,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         self._sync_objects = SyncObjects(self.name)
 
     def _ping_cluster(self):
-        if NS.tendrl_context.cluster_id:
+        if hasattr(NS, "tendrl_context.cluster_id"):
             cluster_data = ceph.heartbeat(NS.tendrl_context.cluster_id)
             NS.tendrl_context.cluster_id = self.fsid = cluster_data['fsid']
         else:
