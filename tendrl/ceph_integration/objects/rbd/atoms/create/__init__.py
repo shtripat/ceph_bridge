@@ -72,7 +72,7 @@ class Create(objects.BaseAtom):
         ).value
         rbd_details = NS.state_sync_thread._get_rbds(pool_name)
         for k, v in rbd_details.iteritems():
-            NS.ceph_integration.objects.Rbd(
+            NS.ceph.objects.Rbd(
                 name=k,
                 size=v['size'],
                 pool_id=self.parameters['Rbd.pool_id'],
