@@ -50,7 +50,7 @@ class CrushNodeRequestFactory(RequestFactory):
         Event(
             Message(
                 priority="info",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": "Updating CRUSH node {c} parent {p} "
                                     "version {v}".format(c=commands,
                                                          p=parent,

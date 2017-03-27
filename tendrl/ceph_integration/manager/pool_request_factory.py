@@ -112,7 +112,7 @@ class PoolRequestFactory(RequestFactory):
         Event(
             Message(
                 priority="info",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": '_pool_min_size: size %d, min_size %d, '
                                     'ret %d' % (size, min_size, ret_min_size)
                          }
@@ -235,7 +235,7 @@ class PoolRequestFactory(RequestFactory):
         Event(
             Message(
                 priority="debug",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": "Post-create attributes: %s" %
                                     post_create_attrs
                          }
@@ -245,7 +245,7 @@ class PoolRequestFactory(RequestFactory):
         Event(
             Message(
                 priority="debug",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": "Commands: %s" % commands}
             )
         )

@@ -87,7 +87,7 @@ class OsdMap(VersionedSyncObject):
             Event(
                 Message(
                     priority="info",
-                    publisher=tendrl_ns.publisher_id,
+                    publisher=NS.publisher_id,
                     payload={"message": 'No OSD metadata found in OSDMap '
                                         'version:{v} try running "sudo salt'
                                         ' \'*\' salt_util.sync_modules"'
@@ -130,7 +130,7 @@ class OsdMap(VersionedSyncObject):
         Event(
             Message(
                 priority="info",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={
                     "message": 'crush node parent map {p} version {v}'.format(
                         p=parent_map, v=self.version)
@@ -254,7 +254,7 @@ class OsdMap(VersionedSyncObject):
                 Event(
                     Message(
                         priority="error",
-                        publisher=tendrl_ns.publisher_id,
+                        publisher=NS.publisher_id,
                         payload={"message": "Cannot determine OSDS for pool %s"
                                             % pool_id
                                  }
@@ -281,7 +281,7 @@ class OsdMap(VersionedSyncObject):
                     Event(
                         Message(
                             priority="warning",
-                            publisher=tendrl_ns.publisher_id,
+                            publisher=NS.publisher_id,
                             payload={"message": "OSD {0} is present in CRUSH "
                                                 "map, but not in OSD map"
                                      }

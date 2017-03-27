@@ -63,7 +63,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         Event(
             Message(
                 priority="info",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": "%s running" % self.__class__.__name__}
             )
         )
@@ -77,7 +77,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         Event(
             Message(
                 priority="info",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": "%s complete" % self.__class__.__name__}
             )
         )
@@ -99,7 +99,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         Event(
             Message(
                 priority="info",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": 'Checking for version increments in '
                                     'heartbeat...'
                          }
@@ -263,7 +263,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     Event(
                         Message(
                             priority="info",
-                            publisher=tendrl_ns.publisher_id,
+                            publisher=NS.publisher_id,
                             payload={"message": "Updating Pool %s"
                                                 % raw_pool['pool_name']
                                      }
@@ -303,7 +303,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             Event(
                 Message(
                     priority="warning",
-                    publisher=tendrl_ns.publisher_id,
+                    publisher=NS.publisher_id,
                     payload={"message": "ClusterMonitor.on_sync_object: "
                                         "stale object received for %s"
                                         % data['type']
@@ -452,7 +452,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         Event(
                             Message(
                                 priority="warning",
-                                publisher=tendrl_ns.publisher_id,
+                                publisher=NS.publisher_id,
                                 payload={"message": "No cluster stats to parse"
                                          }
                             )
@@ -464,7 +464,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         Event(
                             Message(
                                 priority="warning",
-                                publisher=tendrl_ns.publisher_id,
+                                publisher=NS.publisher_id,
                                 payload={"message": "Missing fields in cluster"
                                                     " stat"
                                          }
@@ -490,7 +490,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         Event(
                             Message(
                                 priority="warning",
-                                publisher=tendrl_ns.publisher_id,
+                                publisher=NS.publisher_id,
                                 payload={"message": "No pool stats to parse"}
                             )
                         )
@@ -513,7 +513,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         Event(
                             Message(
                                 priority="warning",
-                                publisher=tendrl_ns.publisher_id,
+                                publisher=NS.publisher_id,
                                 payload={"message": "Missing fields in pool "
                                                     "stat"
                                          }
@@ -528,7 +528,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         Event(
                             Message(
                                 priority="warning",
-                                publisher=tendrl_ns.publisher_id,
+                                publisher=NS.publisher_id,
                                 payload={"message": "Missing fields in pool"
                                                     " stat"
                                          }

@@ -1,5 +1,3 @@
-import logging
-
 import etcd
 import gevent.event
 import signal
@@ -9,8 +7,6 @@ from tendrl.commons import manager
 from tendrl import ceph_integration
 from tendrl.ceph_integration import sds_sync
 from tendrl.ceph_integration import central_store
-
-LOG = logging.getLogger(__name__)
 
 
 class CephIntegrationManager(manager.Manager):
@@ -30,6 +26,7 @@ def main():
     TendrlNS()
 
     NS.type = "sds"
+    NS.publisher_id = "ceph_integration"
 
     NS.central_store_thread =\
         central_store.CephIntegrationEtcdCentralStore()
@@ -40,11 +37,16 @@ def main():
     # Check if Integration is part of any Tendrl imported/created sds cluster
     try:
         NS.tendrl_context = NS.tendrl_context.load()
-        LOG.info(
-            "Integration %s is part of sds cluster" %
-            NS.tendrl_context.integration_id
+        Event(
+            Message(
+                priority="info",
+                publisher=NS.publisher_id,
+                payload={"message": "Integration %s is part of sds cluster"
+                                    % NS.tendrl_context.integration_id
+                         }
+            )
         )
-        
+
         _detected_cluster = NS.tendrl.objects.DetectedCluster().load()
         NS.tendrl_context.cluster_id = _detected_cluster.detected_cluster_id
         NS.tendrl_context.cluster_name = "gluster-%s" % _detected_cluster.detected_cluster_id
@@ -52,9 +54,14 @@ def main():
         NS.tendrl_context.sds_version = _detected_cluster.sds_pkg_version
 
     except etcd.EtcdKeyNotFound:
-        LOG.error(
-            "Node %s is not part of any sds cluster" %
-            NS.node_context.node_id
+        Event(
+            Message(
+                priority="error",
+                publisher=NS.publisher_id,
+                payload={"message": "Node %s is not part of any sds cluster" %
+                                    NS.node_context.node_id
+                         }
+            )
         )
         raise Exception(
             "Integration cannot be started, "
@@ -65,7 +72,6 @@ def main():
     NS.tendrl_context.save()
     NS.ceph.definitions.save()
     NS.ceph.config.save()
-    NS.publisher_id = "ceph_integration"
 
     m = CephIntegrationManager()
     m.start()
@@ -76,7 +82,7 @@ def main():
         Event(
             Message(
                 priority="info",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": "Signal handler: stopping"}
             )
         )

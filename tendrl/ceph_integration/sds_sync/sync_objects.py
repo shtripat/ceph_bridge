@@ -56,7 +56,7 @@ class SyncObjects(object):
         Event(
             Message(
                 priority="debug",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": "SyncObjects.on_version %s/%s" %
                                     (sync_type.str, new_version)
                          }
@@ -70,7 +70,7 @@ class SyncObjects(object):
                 Event(
                     Message(
                         priority="info",
-                        publisher=tendrl_ns.publisher_id,
+                        publisher=NS.publisher_id,
                         payload={"message": "Advanced known version %s/%s "
                                             "%s->%s" % (self._cluster_name,
                                                         sync_type.str,
@@ -85,7 +85,7 @@ class SyncObjects(object):
                 Event(
                     Message(
                         priority="info",
-                        publisher=tendrl_ns.publisher_id,
+                        publisher=NS.publisher_id,
                         payload={"message": "on_version: %s is newer than %s"
                                             % (new_version, old_version)
                                  }
@@ -100,7 +100,7 @@ class SyncObjects(object):
                     Event(
                         Message(
                             priority="info",
-                            publisher=tendrl_ns.publisher_id,
+                            publisher=NS.publisher_id,
                             payload={"message": "Fetch already underway for %s"
                                                 % sync_type.str
                                      }
@@ -111,7 +111,7 @@ class SyncObjects(object):
                     Event(
                         Message(
                             priority="warning",
-                            publisher=tendrl_ns.publisher_id,
+                            publisher=NS.publisher_id,
                             payload={"message": "Abandoning fetch for %s "
                                                 "started at %s"
                                                 % (sync_type.str,
@@ -124,7 +124,7 @@ class SyncObjects(object):
             Event(
                 Message(
                     priority="info",
-                    publisher=tendrl_ns.publisher_id,
+                    publisher=NS.publisher_id,
                     payload={"message": "on_version: fetching %s/%s , "
                                         "currently got %s, know %s"
                                         % (sync_type, new_version,
@@ -139,7 +139,7 @@ class SyncObjects(object):
         Event(
             Message(
                 priority="debug",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": "SyncObjects.fetch: %s" % sync_type}
             )
         )
@@ -156,7 +156,7 @@ class SyncObjects(object):
         Event(
             Message(
                 priority="debug",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": "SyncObjects.on_fetch_complete %s/%s"
                                     % (sync_type.str, version)
                          }
@@ -173,7 +173,7 @@ class SyncObjects(object):
             Event(
                 Message(
                     priority="warning",
-                    publisher=tendrl_ns.publisher_id,
+                    publisher=NS.publisher_id,
                     payload={"message": "Ignoring outdated update %s/%s" %
                                         (sync_type.str, version)
                              }
@@ -184,7 +184,7 @@ class SyncObjects(object):
             Event(
                 Message(
                     priority="info",
-                    publisher=tendrl_ns.publisher_id,
+                    publisher=NS.publisher_id,
                     payload={"message": "Got new version %s/%s" %
                                         (sync_type.str, version)
                              }

@@ -177,7 +177,7 @@ class UserRequestBase(object):
         Event(
             Message(
                 priority="info",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": "Request %s JID %s completed with result="
                                     "%s" % (self.id, self.jid, self.result)
                          }
@@ -201,7 +201,7 @@ class UserRequestBase(object):
         Event(
             Message(
                 priority="info",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": "Request %s completed with error=%s (%s)" %
                                     (self.id, self.error, self.error_message)
                          }
@@ -248,7 +248,7 @@ class RadosRequest(UserRequest):
         Event(
             Message(
                 priority="debug",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": "%s._submit: %s/%s" %
                                     (self.__class__.__name__,
                                      NS.state_sync_thread.name,
@@ -280,7 +280,7 @@ class CephRequest(UserRequest):
         Event(
             Message(
                 priority="debug",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": "%s._submit: %s/%s" %
                                     (self.__class__.__name__,
                                      NS.state_sync_thread.name,
@@ -312,7 +312,7 @@ class RbdRequest(UserRequest):
         Event(
             Message(
                 priority="debug",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": "%s._submit: %s/%s" %
                                     (self.__class__.__name__,
                                      NS.state_sync_thread.name,
@@ -375,7 +375,7 @@ class OsdMapModifyingRequest(RadosRequest):
             Event(
                 Message(
                     priority="debug",
-                    publisher=tendrl_ns.publisher_id,
+                    publisher=NS.publisher_id,
                     payload={"message": "check passed (%s >= %s)" %
                                         (osd_map.version, self._await_version)
                              }
@@ -386,7 +386,7 @@ class OsdMapModifyingRequest(RadosRequest):
             Event(
                 Message(
                     priority="debug",
-                    publisher=tendrl_ns.publisher_id,
+                    publisher=NS.publisher_id,
                     payload={"message": "check pending (%s < %s)" %
                                         (osd_map.version, self._await_version)
                              }
@@ -477,7 +477,7 @@ class PoolCreatingRequest(OsdMapModifyingRequest):
                     Event(
                         Message(
                             priority="error",
-                            publisher=tendrl_ns.publisher_id,
+                            publisher=NS.publisher_id,
                             payload={
                                 "message": "'{0}' not found, pools are "
                                            "{1}".format(self._pool_name,
@@ -682,7 +682,7 @@ class PgCreatingRequest(OsdMapModifyingRequest):
         Event(
             Message(
                 priority="debug",
-                publisher=tendrl_ns.publisher_id,
+                publisher=NS.publisher_id,
                 payload={"message": "PgCreatingRequest %s %s" %
                                     (sync_type.str, self._phase)
                          }
@@ -705,7 +705,7 @@ class PgCreatingRequest(OsdMapModifyingRequest):
                 Event(
                     Message(
                         priority="debug",
-                        publisher=tendrl_ns.publisher_id,
+                        publisher=NS.publisher_id,
                         payload={"message": "PgCreatingRequest.on_map: "
                                             "pg_counter=%s/%s (final %s)" %
                                             (pgs_not_creating,
@@ -720,7 +720,7 @@ class PgCreatingRequest(OsdMapModifyingRequest):
                         Event(
                             Message(
                                 priority="debug",
-                                publisher=tendrl_ns.publisher_id,
+                                publisher=NS.publisher_id,
                                 payload={"message": "PgCreatingRequest.on_map "
                                                     "Creations complete"
                                          }
@@ -730,7 +730,7 @@ class PgCreatingRequest(OsdMapModifyingRequest):
                             Event(
                                 Message(
                                     priority="debug",
-                                    publisher=tendrl_ns.publisher_id,
+                                    publisher=NS.publisher_id,
                                     payload={"message": "PgCreatingRequest."
                                                         "on_map Issuing "
                                                         "post-create commands"
@@ -743,7 +743,7 @@ class PgCreatingRequest(OsdMapModifyingRequest):
                             Event(
                                 Message(
                                     priority="debug",
-                                    publisher=tendrl_ns.publisher_id,
+                                    publisher=NS.publisher_id,
                                     payload={"message": "PgCreatingRequest.on_"
                                                         "map All done"
                                              }
@@ -754,7 +754,7 @@ class PgCreatingRequest(OsdMapModifyingRequest):
                         Event(
                             Message(
                                 priority="debug",
-                                publisher=tendrl_ns.publisher_id,
+                                publisher=NS.publisher_id,
                                 payload={"message": "PgCreatingREQUEST.on_map "
                                                     "Issuing more creates"
                                          }
