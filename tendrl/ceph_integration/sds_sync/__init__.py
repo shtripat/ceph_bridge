@@ -32,7 +32,7 @@ from tendrl.commons.message import Message
 
 
 class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
-	def __init__(self):
+    def __init__(self):
         super(CephIntegrationSdsSyncStateThread, self).__init__()
         self._ping_cluster()
         self.update_time = datetime.datetime.utcnow().replace(tzinfo=utc)
@@ -46,7 +46,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         }
         self._sync_objects = SyncObjects(self.name)
 
-	def _ping_cluster(self):
+    def _ping_cluster(self):
 		NS.tendrl_context = NS.tendrl_context.load()
 		if NS.tendrl_context.cluster_id:
 				cluster_data = ceph.heartbeat(NS.tendrl_context.cluster_id)
