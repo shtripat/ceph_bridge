@@ -2,8 +2,10 @@ import etcd
 import gevent.event
 import signal
 
+from tendrl.commons.event import Event
 from tendrl.commons import TendrlNS
 from tendrl.commons import manager
+from tendrl.commons.message import Message
 from tendrl import ceph_integration
 from tendrl.ceph_integration import sds_sync
 from tendrl.ceph_integration import central_store
@@ -33,7 +35,7 @@ def main():
     NS.state_sync_thread = sds_sync.CephIntegrationSdsSyncStateThread()
 
     NS.node_context.save()
-    
+
     # Check if Integration is part of any Tendrl imported/created sds cluster
     try:
         NS.tendrl_context = NS.tendrl_context.load()
@@ -49,7 +51,8 @@ def main():
 
         _detected_cluster = NS.tendrl.objects.DetectedCluster().load()
         NS.tendrl_context.cluster_id = _detected_cluster.detected_cluster_id
-        NS.tendrl_context.cluster_name = "gluster-%s" % _detected_cluster.detected_cluster_id
+        NS.tendrl_context.cluster_name =\
+            _detected_cluster.detected_cluster_name
         NS.tendrl_context.sds_name = _detected_cluster.sds_pkg_name
         NS.tendrl_context.sds_version = _detected_cluster.sds_pkg_version
 
@@ -68,7 +71,7 @@ def main():
             "please Import or Create sds cluster in Tendrl "
             "and include Node %s" % NS.node_context.node_id
         )
-    
+
     NS.tendrl_context.save()
     NS.ceph.definitions.save()
     NS.ceph.config.save()
