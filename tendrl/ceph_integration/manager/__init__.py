@@ -2,8 +2,10 @@ import etcd
 import gevent.event
 import signal
 
+from tendrl.commons.event import Event
 from tendrl.commons import TendrlNS
 from tendrl.commons import manager
+from tendrl.commons.message import Message
 from tendrl import ceph_integration
 from tendrl.ceph_integration import sds_sync
 from tendrl.ceph_integration import central_store
