@@ -21,7 +21,7 @@ class Update(objects.BaseAtom):
                 pool_id=self.parameters['Pool.pool_id']
             ).load()
             attrs['pg_num'] = self.parameters.get('Pool.pg_num')
-            if attrs['pg_num'] <= fetched_obj.pg_num:
+            if attrs['pg_num'] <= int(fetched_obj.pg_num):
                 raise AtomExecutionFailedError(
                     "New pg-num cannot be less than existing value"
                 )
