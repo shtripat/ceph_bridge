@@ -347,7 +347,11 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         commands = [
             "ls"
         ]
-        cmd_out = ceph.rbd_command(commands, pool_name)
+        cmd_out = ceph.rbd_command(
+            NS.tendrl_context.cluster_name,
+            commands,
+            pool_name
+        )
         if cmd_out['err'] == "":
             rbd_list = []
             for item in cmd_out['out'].split('\n'):
@@ -358,6 +362,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     "info", "--image", rbd
                 ]
                 cmd_out = ceph.rbd_command(
+                    NS.tendrl_context.cluster_name,
                     commands,
                     pool_name
                 )
@@ -381,6 +386,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     "du", "--image", rbd
                 ]
                 cmd_out = ceph.rbd_command(
+                    NS.tendrl_context.cluster_name,
                     commands,
                     pool_name
                 )
