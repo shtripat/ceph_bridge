@@ -372,7 +372,7 @@ def ceph_command(cluster_name, command_args):
     }
 
 
-def rbd_command(command_args, pool_name=None):
+def rbd_command(cluster_name, command_args, pool_name=None):
     """Run a rbd CLI operation directly.  This is a fallback to allow
 
     manual execution of arbitrary commands in case the user wants to
@@ -386,9 +386,9 @@ def rbd_command(command_args, pool_name=None):
     """
 
     if pool_name:
-        args = ["rbd", "--pool", pool_name] + command_args
+        args = ["rbd", "--pool", pool_name, "--cluster", cluster_name] + command_args
     else:
-        args = ["rbd"] + command_args
+        args = ["rbd", "--cluster", cluster_name] + command_args
 
     p = subprocess.Popen(
         args,

@@ -322,7 +322,11 @@ class RbdRequest(UserRequest):
             )
         )
 
-        return ceph.rbd_command(commands, self._pool_name)
+        return ceph.rbd_command(
+            NS.state_sync_thread.name,
+            commands,
+            self._pool_name
+        )
 
 
 class OsdMapModifyingRequest(RadosRequest):
