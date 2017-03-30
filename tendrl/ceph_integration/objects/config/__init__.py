@@ -7,7 +7,7 @@ from tendrl.commons import objects
 class Config(objects.BaseObject):
     internal = True
     def __init__(self, config=None, *args, **kwargs):
-        self_defs = {}
+        self._defs = {}
         super(Config, self).__init__(*args, **kwargs)
 
         self.value = '_NS/ceph/config'

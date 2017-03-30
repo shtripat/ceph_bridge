@@ -52,7 +52,7 @@ class ValidUpdateParameters(objects.BaseAtom):
             fetched_pool = Pool(
                 pool_id=self.parameters['Pool.pool_id']
             ).load()
-            if self.parameters['Pool.pg_num'] <= fetched_pool.pg_num:
+            if self.parameters['Pool.pg_num'] <= int(fetched_pool.pg_num):
                 Event(
                     Message(
                         priority="info",

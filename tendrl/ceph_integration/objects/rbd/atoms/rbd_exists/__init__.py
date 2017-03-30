@@ -38,7 +38,7 @@ class RbdExists(objects.BaseAtom):
                     priority="info",
                     publisher=NS.publisher_id,
                     payload={
-                        "message": "Rbd: %s exists for pool %s" %
+                        "message": "Rbd: %s does not exist for pool %s" %
                         (self.parameters['Rbd.name'],
                          self.parameters['Rbd.pool_id'])
                     },
