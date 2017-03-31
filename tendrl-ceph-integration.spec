@@ -1,5 +1,5 @@
 Name: tendrl-ceph-integration
-Version: 1.2.1
+Version: 1.2.2
 Release: 1%{?dist}
 BuildArch: noarch
 Summary: Tendrl bridge for Ceph Storage
@@ -59,6 +59,9 @@ py.test -v tendrl/ceph_integration/tests || :
 %{_sysconfdir}/tendrl/ceph-integration/ceph-integration.conf.yaml
 
 %changelog
+* Sat Apr 01 2017 Rohan Kanade <rkanade@redhat.com> - 1.2.2-1
+- Release tendrl-ceph-integration v1.2.2
+
 * Mon Jan 23 2017 Timothy Asir Jeyasingh <tjeyasin@redhat.com> - 1.1-1
 - Config file changes
 - Import ceph
