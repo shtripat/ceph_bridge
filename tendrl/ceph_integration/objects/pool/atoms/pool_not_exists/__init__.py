@@ -27,9 +27,12 @@ class PoolNotExists(objects.BaseAtom):
         )
 
         try:
-            Pool(
-                pool_id=self.parameters['Pool.pool_id']
-            ).load()
+            NS.etcd_orm.client.read(
+                'clusters/%s/Pools/%s' % (
+                    NS.tendrl_context.integration_id,
+                    self.parameters['Pool.pool_id']
+                )
+            )
         except etcd.EtcdKeyNotFound:
             return True
 
