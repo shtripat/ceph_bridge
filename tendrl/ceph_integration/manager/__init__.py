@@ -65,6 +65,21 @@ def main():
             "please Import or Create sds cluster in Tendrl "
             "and include Node %s" % NS.node_context.node_id
         )
+    if NS.tendrl_context.integration_id is None:
+        Event(
+            Message(
+                priority="error",
+                publisher=NS.publisher_id,
+                payload={"message": "Node %s is not part of any sds cluster" %
+                                    NS.node_context.node_id
+                         }
+            )
+        )
+        raise Exception(
+            "Integration cannot be started, "
+            "please Import or Create sds cluster in Tendrl "
+            "and include Node %s" % NS.node_context.node_id
+        )
 
     NS.tendrl_context.save()
     NS.ceph.definitions.save()
