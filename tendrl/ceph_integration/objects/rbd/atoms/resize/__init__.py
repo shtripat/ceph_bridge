@@ -30,9 +30,9 @@ class Resize(objects.BaseAtom):
         )
 
         crud = Crud()
-        ret_val = crud.update("rbd", self.parameters['Rbd.name'], attrs)
-        if ret_val['response'] is not None and \
-            ret_val['response']['error'] is True:
+        resp = crud.update("rbd", self.parameters['Rbd.name'], attrs)
+        ret_val, err = crud.sync_request_status(resp['request'])
+        if ret_val != 0:
             Event(
                 Message(
                     priority="info",
@@ -40,7 +40,7 @@ class Resize(objects.BaseAtom):
                     payload={
                         "message": "Failed to resize rbd %s."
                         " Error: %s" % (self.parameters['Rbd.name'],
-                                        ret_val['error_status'])
+                                        err)
                     },
                     job_id=self.parameters['job_id'],
                     flow_id=self.parameters['flow_id'],

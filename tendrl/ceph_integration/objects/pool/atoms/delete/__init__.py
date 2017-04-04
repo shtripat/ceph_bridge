@@ -28,12 +28,12 @@ class Delete(objects.BaseAtom):
         )
 
         crud = Crud()
-        ret_val = crud.delete(
+        resp = crud.delete(
             "pool",
             pool_id
         )
-        if ret_val['response'] is not None and \
-            ret_val['response']['error'] is True:
+        ret_val, err = crud.sync_request_status(resp['request'])
+        if ret_val != 0:
             Event(
                 Message(
                     priority="info",
@@ -41,7 +41,7 @@ class Delete(objects.BaseAtom):
                     payload={
                         "message": "Failed to delete pool %s."
                         " Error: %s" % (self.parameters['Pool.poolname'],
-                                        ret_val['error_status'])
+                                        err)
                     },
                     job_id=self.parameters['job_id'],
                     flow_id=self.parameters['flow_id'],

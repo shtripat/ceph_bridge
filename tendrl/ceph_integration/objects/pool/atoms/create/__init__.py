@@ -39,9 +39,9 @@ class Create(objects.BaseAtom):
         )
 
         crud = Crud()
-        ret_val = crud.create("pool", attrs)
-        if ret_val['response'] is not None and \
-            ret_val['response']['error'] is True:
+        resp = crud.create("pool", attrs)
+        ret_val, err = crud.sync_request_status(resp['request'])
+        if ret_val != 0:
             Event(
                 Message(
                     priority="info",
@@ -49,7 +49,7 @@ class Create(objects.BaseAtom):
                     payload={
                         "message": "Failed to create pool %s."
                         " Error: %s" % (self.parameters['Pool.poolname'],
-                                        ret_val['error_status'])
+                                        err)
                     },
                     job_id=self.parameters['job_id'],
                     flow_id=self.parameters['flow_id'],

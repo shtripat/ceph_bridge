@@ -1,3 +1,5 @@
+import gevent
+
 from tendrl.ceph_integration.types import CRUSH_MAP
 from tendrl.ceph_integration.types import CRUSH_NODE
 from tendrl.ceph_integration.types import EC_PROFILE
@@ -119,3 +121,14 @@ class Crud(object):
             )
         else:
             raise NotImplementedError(object_type)
+
+    def sync_request_status(self, request):
+        count = 0
+        while count < 30:
+            gevent.sleep(10)
+            if request.state == "complete" and not request.error:
+                return 0, request.status
+            if request.error:
+                return -1, request.error_message
+            count += 1
+        return -1, "Request timed out"

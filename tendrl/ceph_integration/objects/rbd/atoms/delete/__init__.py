@@ -30,12 +30,12 @@ class Delete(objects.BaseAtom):
         )
 
         crud = RbdCrud()
-        ret_val = crud.delete_rbd(
+        resp = crud.delete_rbd(
             pool_id,
             rbd_name
         )
-        if ret_val['response'] is not None and \
-            ret_val['response']['error'] is True:
+        ret_val, err = crud.sync_request_status(resp['request'])
+        if ret_val != 0:
             Event(
                 Message(
                     priority="info",
@@ -43,7 +43,7 @@ class Delete(objects.BaseAtom):
                     payload={
                         "message": "Failed to delete rbd %s."
                         " Error: %s" % (self.parameters['Rbd.name'],
-                                        ret_val['error_status'])
+                                        err)
                     },
                     job_id=self.parameters['job_id'],
                     flow_id=self.parameters['flow_id'],
