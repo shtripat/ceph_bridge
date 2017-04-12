@@ -1,6 +1,8 @@
 namespace.ceph:
   flows:
     CreatePool:
+      tags:
+       - "tendrl/integration/$TendrlContext.integration_id"
       atoms:
         - ceph.objects.Pool.atoms.Create
       help: "Create Ceph Pool"
@@ -23,6 +25,8 @@ namespace.ceph:
       type: Create
       uuid: faeab231-69e9-4c9d-b5ef-a67ed057f98b
     CreateECProfile:
+      tags:
+       - "tendrl/integration/$TendrlContext.integration_id"
       atoms:
         - ceph.objects.ECProfile.atoms.Create
       help: "Create EC Profile"
@@ -100,6 +104,8 @@ namespace.ceph:
           uuid: 7a2df258-9b24-4fd3-a66f-ee346e2e3740
       flows:
         DeleteECProfile:
+          tags:
+            - "tendrl/integration/$TendrlContext.integration_id"
           atoms:
             - ceph.objects.ECProfile.atoms.Delete
           help: "Delete ec profile"
@@ -196,6 +202,8 @@ namespace.ceph:
           uuid: 7a2df258-9b24-4fd3-a66f-ee346e2e3922
       flows:
         CreateRbd:
+          tags:
+            - "tendrl/integration/$TendrlContext.integration_id"
           atoms:
             - ceph.objects.Rbd.atoms.Create
           help: "Create Rbd"
@@ -211,6 +219,8 @@ namespace.ceph:
           type: Create
           uuid: 9bc41d8f-a0cf-420a-b2fe-18761e07f3d2
         DeleteRbd:
+          tags:
+            - "tendrl/integration/$TendrlContext.integration_id"
           atoms:
             - ceph.objects.Rbd.atoms.Delete
           help: "Delete Rbd"
@@ -227,6 +237,8 @@ namespace.ceph:
           type: Delete
           uuid: 4ac41d8f-a0cf-420a-b2fe-18761e07f3a7
         ResizeRbd:
+          tags:
+            - "tendrl/integration/$TendrlContext.integration_id"
           atoms:
             - ceph.objects.Rbd.atoms.Resize
           help: "Resize Rbd"
@@ -364,6 +376,8 @@ namespace.ceph:
           uuid: 9a2df258-9b24-4fd3-a66f-ee346e2e3832
       flows:
         DeletePool:
+          tags:
+            - "tendrl/integration/$TendrlContext.integration_id"
           atoms:
             - ceph.objects.Pool.atoms.Delete
           help: "Delete Ceph Pool"
@@ -379,6 +393,8 @@ namespace.ceph:
           type: Delete
           uuid: 4ac41d8f-a0cf-420a-b2fe-18761e07f3b9
         UpdatePool:
+          tags:
+            - "tendrl/integration/$TendrlContext.integration_id"
           atoms:
             - ceph.objects.Pool.atoms.Update
           help: "Update Ceph Pool"
