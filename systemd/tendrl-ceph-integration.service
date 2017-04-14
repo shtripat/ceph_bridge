@@ -1,5 +1,6 @@
 [Unit]
 Description=Tendrl ceph integration to manage ceph storage system
+Requires=tendrl-node-agent.service
 
 [Service]
 Type=simple
