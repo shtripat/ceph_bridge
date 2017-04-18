@@ -1,4 +1,6 @@
 from tendrl.ceph_integration.manager.crud import Crud
+from tendrl.ceph_integration.manager.exceptions import \
+    RequestStateError
 from tendrl.commons import objects
 from tendrl.ceph_integration.objects.ecprofile import ECProfile
 from tendrl.commons.event import Event
@@ -27,8 +29,9 @@ class Delete(objects.BaseAtom):
 
         crud = Crud()
         resp = crud.delete("ec_profile", self.parameters['ECProfile.name'])
-        ret_val, err = crud.sync_request_status(resp['request'])
-        if ret_val != 0:
+        try:
+            crud.sync_request_status(resp['request'])
+        except RequestStateError as ex:
             Event(
                 Message(
                     priority="info",
@@ -36,7 +39,7 @@ class Delete(objects.BaseAtom):
                     payload={
                         "message": "Failed to delete ec-profile %s."
                         " Error: %s" % (self.parameters['ECProfile.name'],
-                                        err)
+                                        ex)
                     },
                     job_id=self.parameters['job_id'],
                     flow_id=self.parameters['flow_id'],
