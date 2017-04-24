@@ -615,6 +615,15 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         request = getattr(request_factory, method)(*args, **kwargs)
 
         response = request.submit()
+
+        # Check the result status and accordingly set the error state
+        if ('status' in response) and response['status'] != 0:
+            request.error = True
+            request.error_message = response['err']
+        elif response['error']:
+            request.error = True
+            request.error_message = response['error_status']
+
         request.complete_jid(response)
         self._request_coll._by_request_id[request.id] = request
         if request:

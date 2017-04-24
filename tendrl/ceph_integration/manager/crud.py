@@ -133,4 +133,4 @@ class Crud(object):
             if request.error:
                 raise RequestStateError(request.error_message)
             count += 1
-        raise RequestStateError("Request timed out")
+        raise RequestStateError("Request: %s timed out" % request.id)
