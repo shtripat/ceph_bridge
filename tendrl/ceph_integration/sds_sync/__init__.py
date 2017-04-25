@@ -137,7 +137,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     size=v['size'],
                     pool_id=pool_id,
                     flags=v['flags'],
-                    provisioned=self._to_bytes(v['provisioned']),
+                    provisioned=self._to_bytes(v.get("provisioned", 0)),
                     used=self._to_bytes(v['used'])
                 ).save()
 
