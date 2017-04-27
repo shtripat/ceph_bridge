@@ -1,4 +1,5 @@
 import etcd
+import gevent
 import gevent.event
 import signal
 
@@ -87,6 +88,33 @@ def main():
 
     m = CephIntegrationManager()
     m.start()
+
+    # Persist the monitor secret to central store
+    # This is required while expand cluster with more mon nodes
+    # We need to wait for few seconds to let the first round of
+    # cluster sync happen
+    gevent.sleep(5)
+    try:
+        with open(
+            "/etc/ceph/%s.client.admin.keyring" %\
+            NS.tendrl_context.cluster_name
+        ) as f:
+            content = f.read()
+            mon_sec = content.split('\n')[1].strip().split(' = ')[1].strip()
+            NS.etcd_orm.client.write(
+                "clusters/%s/mon_key" % NS.tendrl_context.integration_id,
+                mon_sec
+            )
+    except:
+        Event(
+            Message(
+                priority="warning",
+                publisher=NS.publisher_id,
+                payload={"message": "Couldn't save monitor key"}
+            )
+        )
+    finally:
+        f.close()
 
     complete = gevent.event.Event()
 
