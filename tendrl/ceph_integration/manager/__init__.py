@@ -102,7 +102,7 @@ def main():
             content = f.read()
             mon_sec = content.split('\n')[1].strip().split(' = ')[1].strip()
             NS.etcd_orm.client.write(
-                "clusters/%s/mon_key" % NS.tendrl_context.integration_id,
+                "clusters/%s/_mon_key" % NS.tendrl_context.integration_id,
                 mon_sec
             )
     except:
