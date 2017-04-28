@@ -1,6 +1,5 @@
 import etcd
 
-from tendrl.ceph_integration.manager.crud import Crud
 from tendrl.commons import objects
 from tendrl.ceph_integration.objects.rbd import Rbd
 from tendrl.commons.event import Event

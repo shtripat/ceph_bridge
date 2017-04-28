@@ -1,6 +1,8 @@
 from tendrl.commons import objects
-from tendrl.ceph_integration.objects.rbd import Rbd
+from tendrl.ceph_integration.manager.exceptions import \
+    RequestStateError
 from tendrl.ceph_integration.manager.rbd_crud import RbdCrud
+from tendrl.ceph_integration.objects.rbd import Rbd
 from tendrl.commons.event import Event
 from tendrl.commons.message import Message
 
@@ -30,12 +32,13 @@ class Delete(objects.BaseAtom):
         )
 
         crud = RbdCrud()
-        ret_val = crud.delete_rbd(
+        resp = crud.delete_rbd(
             pool_id,
             rbd_name
         )
-        if ret_val['response'] is not None and \
-            ret_val['response']['error'] is True:
+        try:
+            crud.sync_request_status(resp['request'])
+        except RequestStateError as ex:
             Event(
                 Message(
                     priority="info",
@@ -43,7 +46,7 @@ class Delete(objects.BaseAtom):
                     payload={
                         "message": "Failed to delete rbd %s."
                         " Error: %s" % (self.parameters['Rbd.name'],
-                                        ret_val['error_status'])
+                                        ex)
                     },
                     job_id=self.parameters['job_id'],
                     flow_id=self.parameters['flow_id'],

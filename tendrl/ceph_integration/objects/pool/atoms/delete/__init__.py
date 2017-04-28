@@ -1,4 +1,6 @@
 from tendrl.ceph_integration.manager.crud import Crud
+from tendrl.ceph_integration.manager.exceptions import \
+    RequestStateError
 from tendrl.commons import objects
 from tendrl.ceph_integration.objects.pool import Pool
 from tendrl.commons.event import Event
@@ -28,12 +30,13 @@ class Delete(objects.BaseAtom):
         )
 
         crud = Crud()
-        ret_val = crud.delete(
+        resp = crud.delete(
             "pool",
             pool_id
         )
-        if ret_val['response'] is not None and \
-            ret_val['response']['error'] is True:
+        try:
+            crud.sync_request_status(resp['request'])
+        except RequestStateError as ex:
             Event(
                 Message(
                     priority="info",
@@ -41,7 +44,7 @@ class Delete(objects.BaseAtom):
                     payload={
                         "message": "Failed to delete pool %s."
                         " Error: %s" % (self.parameters['Pool.poolname'],
-                                        ret_val['error_status'])
+                                        ex)
                     },
                     job_id=self.parameters['job_id'],
                     flow_id=self.parameters['flow_id'],

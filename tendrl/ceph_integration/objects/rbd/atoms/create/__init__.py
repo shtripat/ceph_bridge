@@ -1,4 +1,6 @@
 from tendrl.ceph_integration.manager.crud import Crud
+from tendrl.ceph_integration.manager.exceptions import \
+    RequestStateError
 from tendrl.commons import objects
 from tendrl.ceph_integration.objects.rbd import Rbd
 from tendrl.commons.event import Event
@@ -31,9 +33,10 @@ class Create(objects.BaseAtom):
         )
 
         crud = Crud()
-        ret_val = crud.create("rbd", attrs)
-        if ret_val['response'] is not None and \
-            ret_val['response']['error'] is True:
+        resp = crud.create("rbd", attrs)
+        try:
+            crud.sync_request_status(resp['request'])
+        except RequestStateError as ex:
             Event(
                 Message(
                     priority="info",
@@ -41,7 +44,7 @@ class Create(objects.BaseAtom):
                     payload={
                         "message": "Failed to create rbd %s."
                         " Error: %s" % (self.parameters['Rbd.name'],
-                                        ret_val['error_status'])
+                                        ex)
                     },
                     job_id=self.parameters['job_id'],
                     flow_id=self.parameters['flow_id'],
