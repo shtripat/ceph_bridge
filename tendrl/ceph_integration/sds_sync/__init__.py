@@ -20,6 +20,8 @@ from tendrl.ceph_integration.manager.pool_request_factory import \
     PoolRequestFactory
 from tendrl.ceph_integration.manager.rbd_request_factory import \
     RbdRequestFactory
+from tendrl.ceph_integration.manager.request_collection import \
+    RequestCollection
 from tendrl.ceph_integration.objects import pool
 from tendrl.ceph_integration.sds_sync.sync_objects import SyncObjects
 from tendrl.ceph_integration.types import SYNC_OBJECT_TYPES, \
@@ -45,6 +47,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             EC_PROFILE: ECProfileRequestFactory
         }
         self._sync_objects = SyncObjects(self.name)
+        self._request_coll = RequestCollection()
 
     def _ping_cluster(self):
         NS.tendrl_context = NS.tendrl_context.load()
@@ -137,7 +140,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     size=v['size'],
                     pool_id=pool_id,
                     flags=v['flags'],
-                    provisioned=self._to_bytes(v['provisioned']),
+                    provisioned=self._to_bytes(v['provisioned']) if v.get(
+                        "provisioned") else None,
                     used=self._to_bytes(v['used'])
                 ).save()
 
@@ -240,6 +244,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         new_object = self.inject_sync_object(
             data['type'], data['version'], sync_object
         )
+        self._request_coll.on_map(sync_type, new_object)
         if new_object:
             NS.ceph.objects.SyncObject(
                 updated=now(), sync_type=sync_type.str,
@@ -270,6 +275,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                                      }
                         )
                     )
+                    pool_used = 0
+                    pcnt = 0
                     for pool in util_data['pools']:
                         if pool['name'] == raw_pool['pool_name']:
                             pool_used = pool['used']
@@ -609,9 +616,20 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         request = getattr(request_factory, method)(*args, **kwargs)
 
         response = request.submit()
+
+        # Check the result status and accordingly set the error state
+        if ('status' in response) and response['status'] != 0:
+            request.error = True
+            request.error_message = response['err']
+        elif response['error']:
+            request.error = True
+            request.error_message = response['error_status']
+
+        request.complete_jid(response)
+        self._request_coll._by_request_id[request.id] = request
         if request:
             return {
-                'request_id': request.id,
+                'request': request,
                 'response': response
             }
         else:

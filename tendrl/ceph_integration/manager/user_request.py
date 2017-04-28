@@ -158,9 +158,9 @@ class UserRequestBase(object):
 
         """
         assert self.state == self.NEW
-        self._submit()
-
+        ret_val = self._submit()
         self.state = self.SUBMITTED
+        return ret_val
 
     def _submit(self):
         raise NotImplementedError()
