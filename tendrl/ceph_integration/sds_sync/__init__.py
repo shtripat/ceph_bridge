@@ -621,7 +621,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         if ('status' in response) and response['status'] != 0:
             request.error = True
             request.error_message = response['err']
-        elif response['error']:
+        elif ('error' in response) and response['error']:
             request.error = True
             request.error_message = response['error_status']
 
