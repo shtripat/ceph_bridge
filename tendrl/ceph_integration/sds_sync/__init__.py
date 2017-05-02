@@ -618,10 +618,27 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         response = request.submit()
 
         # Check the result status and accordingly set the error state
+        # sample responses:
+        # 1. {'status': 1, 'err': 'rbd command timed out', 'out': ''}
+        # 2. {'status': 0, 'err': '', 'out': ''}
+        # 3. {'versions':{
+        #       'osd_map': 17,
+        #       'pg_summary': '1710d2db9cdf746e06ee392786f130aa',
+        #       'mds_map': None,
+        #       'mon_status': 8,
+        #       'health': 'd9f0d31b4021c00d14bccee24891daca',
+        #       'mon_map': 3,
+        #       'config': 'fa52cae4e8f8d04f79969385432eb145'
+        #       },
+        #     'error_status': '',
+        #     'results': [None, None, None],
+        #     'fsid': '140cd3d5-58e4-4935-a954-d946ceff371d',
+        #     'error': False
+        #    }
         if ('status' in response) and response['status'] != 0:
             request.error = True
             request.error_message = response['err']
-        elif response['error']:
+        elif ('error' in response) and response['error']:
             request.error = True
             request.error_message = response['error_status']
 
