@@ -26,15 +26,18 @@ class RbdNotExists(objects.BaseAtom):
                 cluster_id=NS.tendrl_context.integration_id,
             )
         )
-        try:
-            NS.etcd_orm.client.read(
-                'clusters/%s/Pools/%s/Rbds/%s' % (
-                    NS.tendrl_context.integration_id,
-                    self.parameters['Rbd.pool_id'],
-                    self.parameters['Rbd.name']
+        if self.parameters['Rbd.pool_id'] is not None:
+            try:
+                NS.etcd_orm.client.read(
+                    'clusters/%s/Pools/%s/Rbds/%s' % (
+                        NS.tendrl_context.integration_id,
+                        self.parameters['Rbd.pool_id'],
+                        self.parameters['Rbd.name']
+                    )
                 )
-            )
-        except etcd.EtcdKeyNotFound:
+            except etcd.EtcdKeyNotFound:
+                return True
+        else:
             return True
 
         Event(

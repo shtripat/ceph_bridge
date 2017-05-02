@@ -272,6 +272,12 @@ namespace.ceph:
         used:
           help: used size
           type: int
+        create_pool:
+          help: To check if new pool has to created or not for rbd creation
+          type: bool
+        pool_parameters:
+          help: Attributes for new pool creation
+          type: dict
       help: "Rbd"
       enabled: true
       value: clusters/$TendrlContext.integration_id/Pools/$Pool.pool_id/Rbds/$Rbd.name
