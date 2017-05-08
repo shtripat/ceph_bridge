@@ -148,9 +148,21 @@ namespace.ceph:
           help: "Create rbd"
           inputs:
             mandatory:
-              - Rbd.pool_id
               - Rbd.name
               - Rbd.size
+            optional:
+              - Rbd.pool_id
+              - Rbd.pool_crush_ruleset
+              - Rbd.pool_erasure_code_profile
+              - Rbd.pool_min_size
+              - Rbd.pool_pg_num
+              - Rbd.pool_pgp_num
+              - Rbd.pool_poolname
+              - Rbd.pool_type
+              - Rbd.pool_size
+              - Rbd.pool_quota_enabled
+              - Rbd.pool_quota_max_objects
+              - Rbd.pool_quota_max_bytes
           name: "Create Rbd"
           run: ceph.objects.Rbd.atoms.Create
           type: Create
@@ -210,9 +222,21 @@ namespace.ceph:
           enabled: true
           inputs:
             mandatory:
-              - Rbd.pool_id
               - Rbd.name
               - Rbd.size
+            optional:
+              - Rbd.pool_id
+              - Rbd.pool_crush_ruleset
+              - Rbd.pool_erasure_code_profile
+              - Rbd.pool_min_size
+              - Rbd.pool_pg_num
+              - Rbd.pool_pgp_num
+              - Rbd.pool_poolname
+              - Rbd.pool_type
+              - Rbd.pool_size
+              - Rbd.pool_quota_enabled
+              - Rbd.pool_quota_max_objects
+              - Rbd.pool_quota_max_bytes
           pre_run:
             - ceph.objects.Rbd.atoms.RbdNotExists
           run: ceph.objects.Rbd.flows.CreateRbd
@@ -260,9 +284,6 @@ namespace.ceph:
         size:
           help: Size of the rbd (MB)
           type: int
-        pool_id:
-          help: Id of the pool
-          type: String
         flags:
           help: flags for rbd
           type: list
@@ -272,12 +293,44 @@ namespace.ceph:
         used:
           help: used size
           type: int
-        create_pool:
-          help: To check if new pool has to created or not for rbd creation
+        # The following parameters are pool parameters for use case which
+        # creates a backing pool for rbd creation.
+        pool_id:
+          help: Id of the pool
+          type: String
+        pool_crush_ruleset:
+          help: ID of a CRUSH ruleset to use for this pool. The specified ruleset must exist.
+          type: Integer
+        pool_erasure_code_profile:
+          help: For erasure pools only.It must be an existing profile
+          type: String
+        pool_min_size:
+          help: Sets the minimum number of replicas required for I/O in degraded state
+          type: Integer
+        pool_pg_num:
+          help: The total number of placement groups for placement purposes.
+          type: Integer
+        pool_pgp_num:
+          help: The total number of placement groups for the pool.
+          type: Integer
+        pool_poolname:
+          help: Name of the Ceph pool
+          type: String
+        pool_type:
+          help: Type of the Ceph pool(ec or replicated)
+          type: String
+        pool_size:
+          help: Sets the minimum number of replicas required for I/O
+          type: Integer
+        pool_quota_enabled:
+          help: If quota enabled for the pool
           type: bool
-        pool_parameters:
-          help: Attributes for new pool creation
-          type: dict
+        pool_quota_max_objects:
+          help: Maximum no of object
+          type: int
+        pool_quota_max_bytes:
+          help: Maximum no of bytes
+          type: int
       help: "Rbd"
       enabled: true
       value: clusters/$TendrlContext.integration_id/Pools/$Pool.pool_id/Rbds/$Rbd.name
