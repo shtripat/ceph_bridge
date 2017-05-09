@@ -13,7 +13,6 @@ from tendrl.commons.message import Message
 
 
 class Create(objects.BaseAtom):
-    obj = Rbd
 
     def __init__(self, *args, **kwargs):
         super(Create, self).__init__(*args, **kwargs)
@@ -50,6 +49,7 @@ class Create(objects.BaseAtom):
                     "run": "ceph.flows.CreatePool",
                     "status": "new",
                     "parameters": pool_parameters,
+                    "parent": self.parameters['job_id'],
                     "type": "sds",
                     "tags": ["ceph/mon"]
                 }
@@ -119,9 +119,9 @@ class Create(objects.BaseAtom):
                                 priority="error",
                                 publisher=NS.publisher_id,
                                 payload={
-                                    "message": "Failed to fetch pool_id."
-                                               " Cannot create rbd without "
-                                               "pool_id."
+                                    "message": "Failed to fetch pool_id %s ."
+                                               "Cannot create rbd without "
+                                               "pool_id." % pool_id
                                 },
                                 job_id=self.parameters['job_id'],
                                 flow_id=self.parameters['flow_id'],
@@ -243,10 +243,8 @@ class Create(objects.BaseAtom):
         except etcd.EtcdKeyNotFound:
             return False
 
-        for pool in pools._children:
-            fetched_pool = Pool(
-                pool_id=pool['key'].split('/')[-1]
-            ).load()
+        for pool in pools.leaves:
+            fetched_pool = Pool(pool_id=pool.key.split("Pools/")[-1]).load()
             if fetched_pool.pool_name == pool_name:
                 Event(
                     Message(
