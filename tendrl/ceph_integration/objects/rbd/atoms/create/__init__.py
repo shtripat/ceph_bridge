@@ -1,12 +1,12 @@
 import json
 import uuid
+from sets import Set
 
 from tendrl.ceph_integration.manager.crud import Crud
 from tendrl.ceph_integration.manager.exceptions import \
     RequestStateError
 from tendrl.commons import objects
 from tendrl.ceph_integration.objects.pool import Pool
-from tendrl.ceph_integration.objects.rbd import Rbd
 from tendrl.commons.event import Event
 from tendrl.commons.objects.job import Job
 from tendrl.commons.message import Message
@@ -33,14 +33,16 @@ class Create(objects.BaseAtom):
         )
         if not self.parameters.get('Rbd.pool_id'):
             # Checking if mandatory parameters for pool creation are present
-            if all(param in self.parameters for param in ["Rbd.pool_poolname",
-                                                          "Rbd.pool_pg_num",
-                                                          "Rbd.pool_size",
-                                                          "Rbd.pool_min_size"]
-                   ):
+            mandatory_pool_params = Set(["Rbd.pool_poolname",
+                                         "Rbd.pool_pg_num",
+                                         "Rbd.pool_size",
+                                         "Rbd.pool_min_size"])
+            missing_params = list(mandatory_pool_params.difference(
+                Set(self.parameters.keys())))
+            if not missing_params:
                 # Mapping the passed pool parameters into required keys
                 pool_parameters={}
-                for key,value in self.parameters.items():
+                for key, value in self.parameters.items():
                     if "Rbd.pool_" in key:
                         pool_parameters[key.replace("Rbd.pool_", "Pool.")] =\
                             value
@@ -51,7 +53,8 @@ class Create(objects.BaseAtom):
                     "parameters": pool_parameters,
                     "parent": self.parameters['job_id'],
                     "type": "sds",
-                    "tags": ["ceph/mon"]
+                    "tags": ["tendrl/integration/$TendrlContext."
+                             "integration_id"]
                 }
                 Event(
                     Message(
@@ -150,9 +153,10 @@ class Create(objects.BaseAtom):
                         priority="info",
                         publisher=NS.publisher_id,
                         payload={
-                            "message": "Mandatory parameters for pool creation"
-                                       " not present. Cannot continue with rbd"
-                                       " creation."
+                            "message": "Mandatory parameters %s for pool "
+                                       "creation not present. Cannot continue"
+                                       " with rbd creation." %
+                                       ', '.join(missing_params)
                         },
                         job_id=self.parameters['job_id'],
                         flow_id=self.parameters['flow_id'],
