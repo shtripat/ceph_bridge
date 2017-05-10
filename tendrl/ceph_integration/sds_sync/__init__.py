@@ -250,7 +250,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                 updated=now(), sync_type=sync_type.str,
                 version=new_object.version if isinstance(new_object.version,
                                                          int) else None,
-                when=now(), data=data['data']).save()
+                when=now(), data=data['data']).save(update=False)
 
             if sync_type.str == "health":
                 NS.ceph.objects.GlobalDetails(
