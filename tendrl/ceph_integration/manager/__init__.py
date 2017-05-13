@@ -3,7 +3,6 @@ import gevent.event
 import signal
 
 from tendrl import ceph_integration
-from tendrl.ceph_integration import central_store
 from tendrl.ceph_integration import sds_sync
 
 from tendrl.commons.event import Event
@@ -19,8 +18,7 @@ class CephIntegrationManager(manager.Manager):
             CephIntegrationManager,
             self
         ).__init__(
-            NS.state_sync_thread,
-            NS.central_store_thread
+            NS.state_sync_thread
         )
 
 
@@ -31,8 +29,6 @@ def main():
     NS.type = "sds"
     NS.publisher_id = "ceph_integration"
 
-    NS.central_store_thread =\
-        central_store.CephIntegrationEtcdCentralStore()
     NS.state_sync_thread = sds_sync.CephIntegrationSdsSyncStateThread()
 
     NS.node_context.save()

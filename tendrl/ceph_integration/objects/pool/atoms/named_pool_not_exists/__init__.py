@@ -27,7 +27,7 @@ class NamedPoolNotExists(objects.BaseAtom):
         )
 
         try:
-            pools = NS.etcd_orm.client.read(
+            pools = NS._int.client.read(
                 "clusters/%s/Pools" % NS.tendrl_context.integration_id
             )
         except etcd.EtcdKeyNotFound:

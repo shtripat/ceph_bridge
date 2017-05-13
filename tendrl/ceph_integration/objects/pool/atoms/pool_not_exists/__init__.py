@@ -27,7 +27,7 @@ class PoolNotExists(objects.BaseAtom):
         )
 
         try:
-            NS.etcd_orm.client.read(
+            NS._int.client.read(
                 'clusters/%s/Pools/%s' % (
                     NS.tendrl_context.integration_id,
                     self.parameters['Pool.pool_id']

@@ -55,7 +55,7 @@ class Delete(objects.BaseAtom):
             )
             return False
 
-        NS.etcd_orm.client.delete(
+        NS._int.wclient.delete(
             "clusters/%s/Pools/%s/Rbds/%s" % (
                 NS.tendrl_context.integration_id,
                 self.parameters['Rbd.pool_id'],

@@ -1,4 +1,3 @@
-from tendrl.commons.etcdobj import EtcdObj
 from tendrl.commons import objects
 
 
@@ -12,7 +11,6 @@ class Pool(objects.BaseObject):
                  quota_max_bytes=None, *args, **kwargs):
         super(Pool, self).__init__(*args, **kwargs)
 
-        self.value = 'clusters/%s/Pools/%s'
         self.pool_id = pool_id
         self.pool_name = pool_name
         self.pg_num = pg_num
@@ -26,16 +24,9 @@ class Pool(objects.BaseObject):
         self.quota_enabled = quota_enabled
         self.quota_max_objects = quota_max_objects
         self.quota_max_bytes = quota_max_bytes
-        self._etcd_cls = _Pool
-
-
-class _Pool(EtcdObj):
-    """A table of the Pool, lazily updated
-    """
-    __name__ = 'clusters/%s/Pools/%s'
-    _tendrl_cls = Pool
+        self.value = 'clusters/{0}/Pools/{1}'
 
     def render(self):
-        self.__name__ = self.__name__ %\
-            (NS.tendrl_context.integration_id, self.pool_id)
-        return super(_Pool, self).render()
+        self.value = self.value.format(NS.tendrl_context.integration_id,
+                                       self.pool_id)
+        return super(Pool, self).render()
