@@ -1,4 +1,3 @@
-from tendrl.commons.etcdobj import EtcdObj
 from tendrl.commons import objects
 
 
@@ -8,20 +7,12 @@ class Utilization(objects.BaseObject):
                  *args, **kwargs):
         super(Utilization, self).__init__(*args, **kwargs)
 
-        self.value = 'clusters/%s/Utilization'
         self.total = total
         self.used = used
         self.available = available
         self.pcnt_used = pcnt_used
-        self._etcd_cls = _Utilization
-
-
-class _Utilization(EtcdObj):
-    """A table of the Utilization, lazily updated
-    """
-    __name__ = 'clusters/%s/Utilization'
-    _tendrl_cls = Utilization
+        self.value = 'clusters/{0}/Utilization'
 
     def render(self):
-        self.__name__ = self.__name__ % NS.tendrl_context.integration_id
-        return super(_Utilization, self).render()
+        self.value = self.value.format(NS.tendrl_context.integration_id)
+        return super(Utilization, self).render()

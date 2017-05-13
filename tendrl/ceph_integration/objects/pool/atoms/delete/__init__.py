@@ -54,7 +54,7 @@ class Delete(objects.BaseAtom):
             return False
 
         # TODO(shtripat) Use namespace tree and not etcd orm later
-        NS.etcd_orm.client.delete(
+        NS._int.wclient.delete(
             "clusters/%s/Pools/%s" % (
                 NS.tendrl_context.integration_id,
                 self.parameters['Pool.pool_id']

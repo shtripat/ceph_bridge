@@ -48,7 +48,7 @@ class Delete(objects.BaseAtom):
             )
             return False
 
-        NS.etcd_orm.client.delete(
+        NS._int.wclient.delete(
             "clusters/%s/ECProfiles/%s" % (
                 NS.tendrl_context.integration_id,
                 self.parameters['ECProfile.name']
