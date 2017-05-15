@@ -2,6 +2,8 @@ import json
 import uuid
 from sets import Set
 
+import etcd
+
 from tendrl.ceph_integration.manager.crud import Crud
 from tendrl.ceph_integration.manager.exceptions import \
     RequestStateError
@@ -88,7 +90,7 @@ class Create(objects.BaseAtom):
                 job_status = "new"
                 while not pool_created:
                     try:
-                        job_status = NS.etcd_orm.client.read(
+                        job_status = NS._int.client.read(
                             "/queue/%s/status" % _job_id).value
                     except etcd.EtcdKeyNotFound:
                         Event(
@@ -220,7 +222,7 @@ class Create(objects.BaseAtom):
             )
         )
 
-        pool_name = NS.etcd_orm.client.read(
+        pool_name = NS._int.client.read(
             "clusters/%s/Pools/%s/pool_name" %
             (NS.tendrl_context.integration_id,
              self.parameters['Rbd.pool_id'])
@@ -241,7 +243,7 @@ class Create(objects.BaseAtom):
 
     def _get_pool_id(self, pool_name):
         try:
-            pools = NS.etcd_orm.client.read(
+            pools = NS._int.client.read(
                 "clusters/%s/Pools" % NS.tendrl_context.integration_id
             )
         except etcd.EtcdKeyNotFound:

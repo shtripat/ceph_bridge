@@ -123,13 +123,13 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         self._sync_ec_profiles()
 
     def _sync_rbds(self):
-        pools = NS.etcd_orm.client.read(
+        pools = NS._int.client.read(
             "clusters/%s/Pools" % NS.tendrl_context.integration_id,
             recursive=True
         )
         for child in pools._children:
             pool_id = child['key'].split('/')[-1]
-            pool_name = NS.etcd_orm.client.read(
+            pool_name = NS._int.client.read(
                 "clusters/%s/Pools/%s/pool_name" %
                 (NS.tendrl_context.integration_id, pool_id)
             ).value
