@@ -12,6 +12,9 @@ import time
 
 import msgpack
 
+from tendrl.commons.event import Event
+from tendrl.commons.message import Message
+
 # Note: do not import ceph modules at this scope, otherwise this module won't
 # be able to cleanly talk to us about systems where ceph isn't installed yet.
 # We apply a timeout to librados communications, because otherwise a stuck mon
@@ -568,7 +571,15 @@ def get_cluster_object(cluster_name, sync_type):
                     argdict=argdict,
                     timeout=RADOS_TIMEOUT
                 )
-                assert ret == 0
+                if ret != 0:
+                    Event(
+                        Message(
+                            priority="info",
+                            publisher=NS.publisher_id,
+                            payload={"message": "Metadata not available for OSD: %s" % osd_id}
+                        )
+                    )
+                    continue
                 updated_osd_metadata = json_loads_byteified(raw)
                 updated_osd_metadata['osd'] = osd_id
                 data['osd_metadata'].append(updated_osd_metadata)
