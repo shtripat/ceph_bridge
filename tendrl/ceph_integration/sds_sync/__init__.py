@@ -73,7 +73,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         )
 
         while not self._complete.is_set():
-            gevent.sleep(3)
+            gevent.sleep(10)
             cluster_data = ceph.heartbeat(NS.tendrl_context.cluster_id)
 
             self.on_heartbeat(cluster_data)
@@ -306,6 +306,35 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         quota_max_bytes=raw_pool['quota_max_bytes'],
                         used=pool_used,
                         percent_used=pcnt
+                    ).save()
+                for raw_osd in sync_object.get('osds', []):
+                    Event(
+                        Message(
+                            priority="info",
+                            publisher=NS.publisher_id,
+                            payload={
+                                "message": "Updating OSD %s" % raw_osd['osd']
+                            }
+                        )
+                    )
+                    NS.ceph.objects.Osd(
+                        id=raw_osd['osd'],
+                        uuid=raw_osd['uuid'],
+                        public_addr=raw_osd['public_addr'],
+                        cluster_addr=raw_osd['cluster_addr'],
+                        heartbeat_front_addr=raw_osd['heartbeat_front_addr'],
+                        heartbeat_back_addr=raw_osd['heartbeat_back_addr'],
+                        down_at=raw_osd['down_at'],
+                        up_from=raw_osd['up_from'],
+                        lost_at=raw_osd['lost_at'],
+                        osd_up=raw_osd['up'],
+                        osd_in=raw_osd['in'],
+                        up_thru=raw_osd['up_thru'],
+                        weight=str(raw_osd['weight']),
+                        primary_affinity=str(raw_osd['primary_affinity']),
+                        state=raw_osd['state'],
+                        last_clean_begin=raw_osd['last_clean_begin'],
+                        last_clean_end=raw_osd['last_clean_end']
                     ).save()
         else:
             Event(

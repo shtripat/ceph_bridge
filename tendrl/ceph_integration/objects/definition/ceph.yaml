@@ -533,4 +533,61 @@ namespace.ceph:
       help: "Overall utilization of cluster"
       enabled: true
       value: clusters/$TendrlContext.integration_id/Utilization
+    Osd:
+      attrs:
+        id:
+          help: Id of the OSD
+          type: int
+        uuid:
+          help: UUID
+          type: String
+        public_addr:
+          help: Public Address
+          type: String
+        cluster_addr:
+          help: Cluster Address
+          type: String
+        heartbeat_front_addr:
+          help: Heartbeat front address
+          type: String
+        heartbeat_back_addr:
+          help: Heartbeat back address
+          type: String
+        down_at:
+          help: Down at
+          type: int
+        up_from:
+          help: Up from
+          type: int
+        lost_at:
+          help: Lost at
+          type: int
+        osd_up:
+          help: OSD up flag
+          type: int
+        osd_in:
+          help: OSD int flag
+          type: int
+        up_thru:
+          help: Up through
+          type: int
+        weight:
+          help: Weight
+          type: String
+        primary_affinity:
+          help: Primary affinity
+          type: String
+        state:
+          help: State
+          type: String[]
+        last_clean_begin:
+          help: Last clean begin
+          type: int
+        last_clean_end:
+          help: Last clean end
+          type: int
+      help: "Osd"
+      enabled: true
+      value: clusters/$TendrlContext.integration_id/Osds/$Osd.uuid
+      list: clusters/$TendrlContext.integration_id/Osds
 tendrl_schema_version: 0.3
