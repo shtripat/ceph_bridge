@@ -73,7 +73,7 @@ class Create(objects.BaseAtom):
                 _job_id = str(uuid.uuid4())
                 Job(job_id=_job_id,
                     status="new",
-                    payload=json.dumps(payload)).save()
+                    payload=payload).save()
                 Event(
                     Message(
                         priority="error",
