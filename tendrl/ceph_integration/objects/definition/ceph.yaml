@@ -374,7 +374,6 @@ namespace.ceph:
             mandatory:
               - Pool.pool_id
             optional:
-              - Pool.poolname
               - Pool.size
               - Pool.min_size
               - Pool.pg_num
@@ -385,6 +384,17 @@ namespace.ceph:
           run: ceph.objects.Pool.atoms.Update
           type: Update
           uuid: 9a2df258-9b24-4fd3-a66f-ee346e2e3721
+        Rename:
+          enabled: true
+          help: "Pool rename Atom"
+          inputs:
+            mandatory:
+              - Pool.pool_id
+              - Pool.poolname
+          name: "Rename Pool"
+          run: ceph.objects.Pool.atoms.Rename
+          type: Update
+          uuid: 9a2df258-9b24-4fd3-a66f-ee346e2e3761
         ValidUpdateParameters:
           enabled: true
           help: if update parametsr are valid
@@ -392,7 +402,6 @@ namespace.ceph:
             mandatory:
               - Pool.pool_id
             optional:
-              - Pool.poolname
               - Pool.size
               - Pool.min_size
               - Pool.pg_num
@@ -462,7 +471,6 @@ namespace.ceph:
             mandatory:
               - Pool.pool_id
             optional:
-              - Pool.poolname
               - Pool.size
               - Pool.min_size
               - Pool.pg_num
@@ -475,6 +483,22 @@ namespace.ceph:
           run: ceph.objects.Pool.flows.UpdatePool
           type: Update
           uuid: 4ac41d8f-a0cf-420a-b2fe-18761e07f3b2
+        RenamePool:
+          tags:
+            - "tendrl/integration/$TendrlContext.integration_id"
+          atoms:
+            - ceph.objects.Pool.atoms.Rename
+          help: "Rename Ceph Pool"
+          enabled: true
+          inputs:
+            mandatory:
+              - Pool.pool_id
+              - Pool.poolname
+          pre_run:
+            - ceph.objects.Pool.atoms.PoolExists
+          run: ceph.objects.Pool.flows.RenamePool
+          type: Update
+          uuid: 4ac41d8f-a0cf-420a-b2fe-18761e07f3bd
       attrs:
         crush_ruleset:
           help: "The ID of a CRUSH ruleset to use for this pool. The specified ruleset must exist."
