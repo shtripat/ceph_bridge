@@ -39,10 +39,10 @@ class Delete(objects.BaseAtom):
         except RequestStateError as ex:
             Event(
                 Message(
-                    priority="info",
+                    priority="error",
                     publisher=NS.publisher_id,
                     payload={
-                        "message": "Failed to delete pool %s."
+                        "message": "Failed to delete pool %s." \
                         " Error: %s" % (self.parameters['Pool.poolname'],
                                         ex)
                     },
