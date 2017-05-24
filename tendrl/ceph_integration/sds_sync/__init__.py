@@ -268,7 +268,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     used=util_data['cluster']['used'],
                     available=util_data['cluster']['available'],
                     pcnt_used=util_data['cluster']['pcnt_used']
-                ).save()
+                ).save(update=False)
 
                 for raw_pool in sync_object.get('pools', []):
                     Event(
