@@ -54,12 +54,12 @@ class Create(objects.BaseAtom):
                     "parameters": pool_parameters,
                     "parent": self.parameters['job_id'],
                     "type": "sds",
-                    "tags": ["tendrl/integration/$TendrlContext."
-                             "integration_id"]
+                    "tags": ["tendrl/integration/%s" %
+                             NS.tendrl_context.integration_id]
                 }
                 Event(
                     Message(
-                        priority="error",
+                        priority="info",
                         publisher=NS.publisher_id,
                         payload={
                             "message": "Creating job for pool creation"
@@ -75,10 +75,11 @@ class Create(objects.BaseAtom):
                     payload=payload).save()
                 Event(
                     Message(
-                        priority="error",
+                        priority="info",
                         publisher=NS.publisher_id,
                         payload={
-                            "message": "Checking for successful pool creation"
+                            "message": "Checking for success of pool creation "
+                                       "job %s" % _job_id
                         },
                         job_id=self.parameters['job_id'],
                         flow_id=self.parameters['flow_id'],
@@ -151,7 +152,7 @@ class Create(objects.BaseAtom):
             else:
                 Event(
                     Message(
-                        priority="info",
+                        priority="error",
                         publisher=NS.publisher_id,
                         payload={
                             "message": "Mandatory parameters %s for pool "
@@ -192,7 +193,7 @@ class Create(objects.BaseAtom):
         except RequestStateError as ex:
             Event(
                 Message(
-                    priority="info",
+                    priority="error",
                     publisher=NS.publisher_id,
                     payload={
                         "message": "Failed to create rbd %s."
