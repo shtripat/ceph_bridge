@@ -117,7 +117,7 @@ class Create(objects.BaseAtom):
                     pool_id = self._get_pool_id(self.parameters[
                         'Rbd.pool_poolname'])
                     if pool_id:
-                        self.parameters['Rbd.pool_id'] = pool_id
+                        self.parameters['Rbd.pool_id'] = int(pool_id)
                     else:
                         Event(
                             Message(
