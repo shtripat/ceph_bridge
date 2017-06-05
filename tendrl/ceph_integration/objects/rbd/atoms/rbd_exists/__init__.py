@@ -35,7 +35,7 @@ class RbdExists(objects.BaseAtom):
         except etcd.EtcdKeyNotFound:
             Event(
                 Message(
-                    priority="info",
+                    priority="warning",
                     publisher=NS.publisher_id,
                     payload={
                         "message": "Rbd: %s does not exist for pool %s" %

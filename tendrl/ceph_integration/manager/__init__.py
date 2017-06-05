@@ -49,7 +49,7 @@ def main():
     except etcd.EtcdKeyNotFound:
         Event(
             Message(
-                priority="error",
+                priority="debug",
                 publisher=NS.publisher_id,
                 payload={"message": "Node %s is not part of any sds cluster" %
                                     NS.node_context.node_id
@@ -64,7 +64,7 @@ def main():
     if NS.tendrl_context.integration_id is None:
         Event(
             Message(
-                priority="error",
+                priority="debug",
                 publisher=NS.publisher_id,
                 payload={"message": "Node %s is not part of any sds cluster" %
                                     NS.node_context.node_id

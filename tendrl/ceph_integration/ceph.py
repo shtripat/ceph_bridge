@@ -575,7 +575,7 @@ def get_cluster_object(cluster_name, sync_type):
                 if ret != 0:
                     Event(
                         Message(
-                            priority="error",
+                            priority="debug",
                             publisher=NS.publisher_id,
                             payload={"message": "Metadata not"
                                      " available for OSD: %s" % osd_id}

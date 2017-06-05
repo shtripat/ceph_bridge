@@ -253,7 +253,7 @@ class OsdMap(VersionedSyncObject):
                 # Just report all OSDs instead of failing horribly.
                 Event(
                     Message(
-                        priority="error",
+                        priority="debug",
                         publisher=NS.publisher_id,
                         payload={"message": "Cannot determine OSDS for pool %s"
                                             % pool_id
@@ -280,7 +280,7 @@ class OsdMap(VersionedSyncObject):
                 except KeyError:
                     Event(
                         Message(
-                            priority="warning",
+                            priority="info",
                             publisher=NS.publisher_id,
                             payload={"message": "OSD {0} is present in CRUSH "
                                                 "map, but not in OSD map"
