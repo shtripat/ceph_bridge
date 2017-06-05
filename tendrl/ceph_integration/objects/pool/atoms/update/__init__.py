@@ -59,7 +59,7 @@ class Update(objects.BaseAtom):
         except RequestStateError as ex:
             Event(
                 Message(
-                    priority="info",
+                    priority="error",
                     publisher=NS.publisher_id,
                     payload={
                         "message": "Failed to update pool %s."

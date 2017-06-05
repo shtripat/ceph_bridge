@@ -51,7 +51,7 @@ class Create(objects.BaseAtom):
         except RequestStateError as ex:
             Event(
                 Message(
-                    priority="info",
+                    priority="error",
                     publisher=NS.publisher_id,
                     payload={
                         "message": "Failed to create ec-profile %s."

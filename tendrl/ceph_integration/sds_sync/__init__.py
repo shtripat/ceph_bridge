@@ -344,7 +344,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         else:
             Event(
                 Message(
-                    priority="warning",
+                    priority="debug",
                     publisher=NS.publisher_id,
                     payload={"message": "ClusterMonitor.on_sync_object: "
                                         "stale object received for %s"
@@ -499,7 +499,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     if index >= len(lines):
                         Event(
                             Message(
-                                priority="warning",
+                                priority="debug",
                                 publisher=NS.publisher_id,
                                 payload={"message": "No cluster stats to parse"
                                          }
@@ -511,7 +511,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     if len(cluster_fields) < 4:
                         Event(
                             Message(
-                                priority="warning",
+                                priority="debug",
                                 publisher=NS.publisher_id,
                                 payload={"message": "Missing fields in cluster"
                                                     " stat"
@@ -537,7 +537,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     if index >= len(lines):
                         Event(
                             Message(
-                                priority="warning",
+                                priority="debug",
                                 publisher=NS.publisher_id,
                                 payload={"message": "No pool stats to parse"}
                             )
@@ -560,7 +560,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         pool_max_avail_idx == -1:
                         Event(
                             Message(
-                                priority="warning",
+                                priority="debug",
                                 publisher=NS.publisher_id,
                                 payload={"message": "Missing fields in pool "
                                                     "stat"
@@ -575,7 +575,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     if len(pool_fields) < 5:
                         Event(
                             Message(
-                                priority="warning",
+                                priority="debug",
                                 publisher=NS.publisher_id,
                                 payload={"message": "Missing fields in pool"
                                                     " stat"
