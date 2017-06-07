@@ -1,5 +1,6 @@
 import copy
 import datetime
+import etcd
 import json
 import os
 import socket
@@ -41,6 +42,7 @@ from tendrl.ceph_integration.types import SYNC_OBJECT_TYPES
 from tendrl.commons.event import Event
 from tendrl.commons.message import Message
 from tendrl.commons import sds_sync
+from tendrl.commons.utils import cmd_utils
 from tendrl.commons.utils.time_utils import now
 
 
@@ -84,6 +86,36 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                 payload={"message": "%s running" % self.__class__.__name__}
             )
         )
+
+        # Check if monitor key exists, if not sync
+        try:
+            NS._int.client.read(
+                "clusters/%s/_mon_key" % NS.tendrl_context.integration_id
+            )
+        except etcd.EtcdKeyNotFound:
+            out, err, rc = cmd_utils.Command(
+                "ceph auth get mon. --cluster %s" %\
+                NS.tendrl_context.cluster_name
+            ).run()
+
+            if rc != 0:
+                Event(
+                    Message(
+                        priority="debug",
+                        publisher=NS.publisher_id,
+                        payload={
+                            "message": "Couldn't get monitor key. Error:%s " %\
+                            err
+                        }
+                    )
+                )
+            else:
+                if out and out != "":
+                    mon_sec = out.split('\n')[1].strip().split(' = ')[1].strip()
+                    NS._int.wclient.write(
+                        "clusters/%s/_mon_key" % NS.tendrl_context.integration_id,
+                        mon_sec
+                    )
 
         while not self._complete.is_set():
             gevent.sleep(10)
