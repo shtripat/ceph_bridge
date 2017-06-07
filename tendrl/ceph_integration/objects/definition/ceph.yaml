@@ -70,7 +70,7 @@ namespace.ceph:
           type: String
         data:
           help: "Sync data"
-          type: String
+          type: json
       help: "Cluster sync data "
       enabled: true
       value: clusters/$TendrlContext.integration_id/maps/$SyncObject.sync_type
