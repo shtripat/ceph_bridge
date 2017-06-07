@@ -295,7 +295,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         alert['current_value'] = curr_value
         alert['tags'] = dict(
             message=msg,
-            cluster_id=NS.tendrl_context.cluster_id,
+            cluster_id=NS.tendrl_context.integration_id,
             cluster_name=NS.tendrl_context.cluster_name,
             sds_name=NS.tendrl_context.sds_name,
             fqdn=socket.getfqdn()
