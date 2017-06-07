@@ -281,7 +281,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             crud = Crud()
             crud.create("ec_profile", attrs)
 
-    def _emit_event(self, severity, resource, curr_value, msg):
+    def _emit_event(self, severity, resource, curr_value, msg, plugin_instance=None):
         if not NS.node_context.node_id:
             return
         
@@ -300,6 +300,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             sds_name=NS.tendrl_context.sds_name,
             fqdn=socket.getfqdn()
         )
+        if plugin_instance:
+            alert['tags']['plugin_instance'] = plugin_instance
         alert['node_id'] = NS.node_context.node_id
         Event(
             Message(
@@ -339,7 +341,13 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             if health_severity[new_status] < INFO:
                 pass
 
-            self._emit_event(event_sev, 'health', new_status, msg)
+            self._emit_event(
+                event_sev,
+                'health',
+                new_status,
+                msg,
+                plugin_instance=NS.tendrl_context.cluster_name
+            )
 
     def _on_mon_status(self, data):
         old_quorum = NS.ceph.objects.SyncObject(
@@ -356,7 +364,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                 msg.format(
                     cluster_name=NS.tendrl_context.cluster_name,
                     mon_name=name
-                )
+                ),
+                plugin_instance="mon.%s" % name
             )
 
         for rank in new_quorum - old_quorum:
@@ -391,7 +400,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     msg.format(
                         name=NS.tendrl_context.cluster_name,
                         id=osd_id
-                    )
+                    ),
+                    plugin_instance="osd.%s" % osd_id
                 )
 
             # Generate events for removed OSDs
@@ -470,7 +480,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                 msg.format(
                     name=NS.tendrl_context.cluster_name,
                     id=pool_id
-                )
+                ),
+                plugin_instance="pool.%s" % pool_id
             )
 
         # Generate events for removed pools
