@@ -62,6 +62,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
 
     def _ping_cluster(self):
         NS.tendrl_context = NS.tendrl_context.load()
+        NS.node_context = NS.node_context.load()
         if NS.tendrl_context.cluster_id:
                 cluster_data = ceph.heartbeat(NS.tendrl_context.cluster_id)
                 NS.tendrl_context.cluster_id = self.fsid = cluster_data['fsid']
@@ -249,6 +250,9 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             crud.create("ec_profile", attrs)
 
     def _emit_event(self, severity, resource, curr_value, msg):
+        if not NS.node_context.node_id:
+            return
+        
         alert = {}
         alert['source'] = NS.publisher_id
         alert['pid'] = os.getpid()
@@ -265,8 +269,6 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             fqdn=socket.getfqdn()
         )
         alert['node_id'] = NS.node_context.node_id
-        if not NS.node_context.node_id:
-            return
         Event(
             Message(
                 "notice",
