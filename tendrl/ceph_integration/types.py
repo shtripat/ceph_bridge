@@ -365,6 +365,21 @@ SYNC_OBJECT_STR_TYPE = dict((t.str, t) for t in SYNC_OBJECT_TYPES)
 USER_REQUEST_COMPLETE = 'complete'
 USER_REQUEST_SUBMITTED = 'submitted'
 
+# Severity codes for status
+CRITICAL = 1
+ERROR = 2
+WARNING = 3
+RECOVERY = 4
+INFO = 5
+
+SEVERITIES = {
+    CRITICAL: "CRITICAL",
+    ERROR: "ERROR",
+    WARNING: "WARNING",
+    RECOVERY: "RECOVERY",
+    INFO: "INFO"
+}
+
 # List of allowable things to send as ceph commands to OSDs
 OSD_IMPLEMENTED_COMMANDS = ('scrub', 'deep_scrub', 'repair')
 OSD_FLAGS = (
