@@ -1,5 +1,9 @@
 import copy
 import datetime
+import etcd
+import json
+import os
+import socket
 
 import gevent.event
 from pytz import utc
@@ -29,13 +33,17 @@ from tendrl.ceph_integration.types import EC_PROFILE
 from tendrl.ceph_integration.types import OSD
 from tendrl.ceph_integration.types import POOL
 from tendrl.ceph_integration.types import RBD
+from tendrl.ceph_integration.types import INFO, WARNING, \
+    RECOVERY, ERROR, CRITICAL, ERROR, SEVERITIES
+
 from tendrl.ceph_integration.types import SYNC_OBJECT_STR_TYPE
 from tendrl.ceph_integration.types import SYNC_OBJECT_TYPES
-from tendrl.ceph_integration.util import now
 
 from tendrl.commons.event import Event
 from tendrl.commons.message import Message
 from tendrl.commons import sds_sync
+from tendrl.commons.utils import cmd_utils
+from tendrl.commons.utils.time_utils import now
 
 
 class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
@@ -56,6 +64,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
 
     def _ping_cluster(self):
         NS.tendrl_context = NS.tendrl_context.load()
+        NS.node_context = NS.node_context.load()
         if NS.tendrl_context.cluster_id:
                 cluster_data = ceph.heartbeat(NS.tendrl_context.cluster_id)
                 NS.tendrl_context.cluster_id = self.fsid = cluster_data['fsid']
@@ -77,6 +86,36 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                 payload={"message": "%s running" % self.__class__.__name__}
             )
         )
+
+        # Check if monitor key exists, if not sync
+        try:
+            NS._int.client.read(
+                "clusters/%s/_mon_key" % NS.tendrl_context.integration_id
+            )
+        except etcd.EtcdKeyNotFound:
+            out, err, rc = cmd_utils.Command(
+                "ceph auth get mon. --cluster %s" %\
+                NS.tendrl_context.cluster_name
+            ).run()
+
+            if rc != 0:
+                Event(
+                    Message(
+                        priority="debug",
+                        publisher=NS.publisher_id,
+                        payload={
+                            "message": "Couldn't get monitor key. Error:%s " %\
+                            err
+                        }
+                    )
+                )
+            else:
+                if out and out != "":
+                    mon_sec = out.split('\n')[1].strip().split(' = ')[1].strip()
+                    NS._int.wclient.write(
+                        "clusters/%s/_mon_key" % NS.tendrl_context.integration_id,
+                        mon_sec
+                    )
 
         while not self._complete.is_set():
             gevent.sleep(10)
@@ -129,27 +168,30 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         self._sync_ec_profiles()
 
     def _sync_rbds(self):
-        pools = NS._int.client.read(
-            "clusters/%s/Pools" % NS.tendrl_context.integration_id,
-            recursive=True
-        )
-        for child in pools._children:
-            pool_id = child['key'].split('/')[-1]
-            pool_name = NS._int.client.read(
-                "clusters/%s/Pools/%s/pool_name" %
-                (NS.tendrl_context.integration_id, pool_id)
-            ).value
-            rbd_details = self._get_rbds(pool_name)
-            for k, v in rbd_details.iteritems():
-                NS.ceph.objects.Rbd(
-                    name=k,
-                    size=v['size'],
-                    pool_id=pool_id,
-                    flags=v['flags'],
-                    provisioned=self._to_bytes(v['provisioned']) if v.get(
-                        "provisioned") else None,
-                    used=self._to_bytes(v['used'])
-                ).save()
+        try:
+            pools = NS._int.client.read(
+                "clusters/%s/Pools" % NS.tendrl_context.integration_id,
+                recursive=True
+            )
+            for child in pools._children:
+                pool_id = child['key'].split('/')[-1]
+                pool_name = NS._int.client.read(
+                    "clusters/%s/Pools/%s/pool_name" %
+                    (NS.tendrl_context.integration_id, pool_id)
+                ).value
+                rbd_details = self._get_rbds(pool_name)
+                for k, v in rbd_details.iteritems():
+                    NS.ceph.objects.Rbd(
+                        name=k,
+                        size=v['size'],
+                        pool_id=pool_id,
+                        flags=v['flags'],
+                        provisioned=self._to_bytes(v['provisioned']) if v.get(
+                            "provisioned") else None,
+                        used=self._to_bytes(v['used'])
+                    ).save()
+        except etcd.EtcdKeyNotFound:
+            pass
 
     def _sync_ec_profiles(self):
         """Invokes the below CLI commands
@@ -239,6 +281,225 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             crud = Crud()
             crud.create("ec_profile", attrs)
 
+    def _emit_event(self, severity, resource, curr_value, msg, plugin_instance=None):
+        if not NS.node_context.node_id:
+            return
+        
+        alert = {}
+        alert['source'] = NS.publisher_id
+        alert['pid'] = os.getpid()
+        alert['time_stamp'] = now().isoformat()
+        alert['alert_type'] = 'status'
+        alert['severity'] = SEVERITIES[severity]
+        alert['resource'] = resource
+        alert['current_value'] = curr_value
+        alert['tags'] = dict(
+            message=msg,
+            cluster_id=NS.tendrl_context.integration_id,
+            cluster_name=NS.tendrl_context.cluster_name,
+            sds_name=NS.tendrl_context.sds_name,
+            fqdn=socket.getfqdn()
+        )
+        if plugin_instance:
+            alert['tags']['plugin_instance'] = plugin_instance
+        alert['node_id'] = NS.node_context.node_id
+        Event(
+            Message(
+                "notice",
+                "alerting",
+                {'message': json.dumps(alert)}
+            )
+        )
+
+    def _on_health(self, data):
+        old_status = NS.ceph.objects.GlobalDetails().load().status
+        new_status = data['overall_status']
+        health_severity = {
+            "HEALTH_OK": INFO,
+            "HEALTH_WARN": WARNING,
+            "HEALTH_ERR": ERROR
+        }
+
+        if old_status != new_status:
+            if health_severity[new_status] < health_severity[old_status]:
+                # A worsening of health
+                event_sev = health_severity[new_status]
+                msg = "Health of cluster '{name}' degraded from {old} to {new}".format(
+                    old=old_status,
+                    new=new_status,
+                    name=NS.tendrl_context.cluster_name
+                )
+            else:
+                # An improvement in health
+                event_sev = INFO
+                msg = "Health of cluster '{name}' recovered from {old} to {new}".format(
+                    old=old_status,
+                    new=new_status,
+                    name=NS.tendrl_context.cluster_name
+                )
+
+            if health_severity[new_status] < INFO:
+                pass
+
+            self._emit_event(
+                event_sev,
+                'health',
+                new_status,
+                msg,
+                plugin_instance=NS.tendrl_context.cluster_name
+            )
+
+    def _on_mon_status(self, data):
+        old_quorum = NS.ceph.objects.SyncObject(
+            sync_type='mon_status'
+        ).load().data['quorum']
+        new_quorum = set(data['quorum'])
+
+        def _mon_event(severity, msg, mon_rank):
+            name = data.mons_by_rank[mon_rank]['name']
+            self._emit_event(
+                severity,
+                'monitor',
+                str(new_quorum),
+                msg.format(
+                    cluster_name=NS.tendrl_context.cluster_name,
+                    mon_name=name
+                ),
+                plugin_instance="mon.%s" % name
+            )
+
+        for rank in new_quorum - old_quorum:
+            _mon_event(
+                INFO,
+                "Mon '{cluster_name}.{mon_name}' joined quorum",
+                rank
+            )
+
+        for rank in old_quorum - new_quorum:
+            _mon_event(
+                WARNING,
+                "Mon '{cluster_name}.{mon_name}' left quorum",
+                rank
+            )
+
+    def _on_osd_map(self, data):
+        if NS.ceph.objects.SyncObject(sync_type='osd_map').exists():
+            old_osds_det = NS.ceph.objects.SyncObject(
+                sync_type='osd_map'
+            ).load().data['osds']
+            old_osd_ids = set([o['osd'] for o in old_osds_det])
+            new_osd_ids = set([o['osd'] for o in data['osds']])
+            deleted_osds = old_osd_ids - new_osd_ids
+            created_osds = new_osd_ids - old_osd_ids
+
+            def osd_event(severity, msg, osd_id, curr_value):
+                self._emit_event(
+                    severity,
+                    'osd_status',
+                    curr_value,
+                    msg.format(
+                        name=NS.tendrl_context.cluster_name,
+                        id=osd_id
+                    ),
+                    plugin_instance="osd.%s" % osd_id
+                )
+
+            # Generate events for removed OSDs
+            for osd_id in deleted_osds:
+                osd_event(
+                    INFO,
+                    "OSD {name}.{id} removed from the cluster map",
+                    osd_id,
+                    ""
+                )
+
+            # Generate events for added OSDs
+            for osd_id in created_osds:
+                osd_event(
+                    INFO,
+                    "OSD {name}.{id} added to the cluster map",
+                    osd_id,
+                    ""
+                )
+
+            # Generate events for changed OSDs
+            for osd_id in old_osd_ids & new_osd_ids:
+                old_osd = next(
+                    (osd for osd in old_osds_det if osd['osd'] == osd_id),
+                    None
+                )
+                new_osd = next(
+                    (osd for osd in data['osds'] if osd['osd'] == osd_id),
+                    None
+                )
+                if old_osd['up'] != new_osd['up']:
+                    if bool(new_osd['up']):
+                        osd_event(
+                            INFO,
+                            "OSD {name}.{id} came up",
+                            osd_id,
+                            str(new_osd['up'])
+                        )
+                    else:
+                        osd_event(
+                            WARNING,
+                            "OSD {name}.{id} went down",
+                            osd_id,
+                            str(new_osd['up'])
+                        )
+                if old_osd['in'] != new_osd['in']:
+                    if bool(new_osd['in']):
+                        osd_event(
+                            INFO,
+                            "OSD {name}.{id} is in",
+                            osd_id,
+                            str(new_osd['in'])
+                        )
+                    else:
+                        osd_event(
+                            WARNING,
+                            "OSD {name}.{id} went out",
+                            osd_id,
+                            str(new_osd['in'])
+                        )
+
+    def _on_pool_status(self, data):
+        old_pools_det = NS.ceph.objects.SyncObject(
+            sync_type='osd_map'
+        ).load().data['pools']
+        old_pool_ids = set([o['pool'] for o in old_pools_det])
+        new_pool_ids = set([o['pool'] for o in data['pools']])
+        deleted_pools = old_pool_ids - new_pool_ids
+        created_pools = new_pool_ids - old_pool_ids
+
+        def pool_event(severity, msg, pool_id):
+            self._emit_event(
+                severity,
+                'pool',
+                str(new_pool_ids),
+                msg.format(
+                    name=NS.tendrl_context.cluster_name,
+                    id=pool_id
+                ),
+                plugin_instance="pool.%s" % pool_id
+            )
+
+        # Generate events for removed pools
+        for pool_id in deleted_pools:
+            pool_event(
+                INFO,
+                "pool {name}.{id} removed from cluster {name}",
+                pool_id
+            )
+
+        # Generate events for added pools
+        for pool_id in created_pools:
+            pool_event(
+                INFO,
+                "pool {name}.{id} added to cluster {name}",
+                pool_id
+            )
+
     def on_sync_object(self, data):
 
         assert data['fsid'] == self.fsid
@@ -251,6 +512,20 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         )
         self._request_coll.on_map(sync_type, new_object)
         if new_object:
+            # Check and raise any alerts if required
+
+            # TODO (team) Enabled the below if condition as when
+            # alerting needed for cluster health, mon status, pool
+            # status etc
+
+            #if sync_type.str == "health":
+            #    self._on_health(sync_object)
+            #if sync_type.str == "mon_status":
+            #    self._on_mon_status(sync_object)
+            if sync_type.str == "osd_map":
+                #self._on_pool_status(sync_object)
+                self._on_osd_map(sync_object)
+
             NS.ceph.objects.SyncObject(
                 updated=now(), sync_type=sync_type.str,
                 version=new_object.version if isinstance(new_object.version,
@@ -344,7 +619,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         else:
             Event(
                 Message(
-                    priority="warning",
+                    priority="debug",
                     publisher=NS.publisher_id,
                     payload={"message": "ClusterMonitor.on_sync_object: "
                                         "stale object received for %s"
@@ -499,7 +774,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     if index >= len(lines):
                         Event(
                             Message(
-                                priority="warning",
+                                priority="debug",
                                 publisher=NS.publisher_id,
                                 payload={"message": "No cluster stats to parse"
                                          }
@@ -511,7 +786,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     if len(cluster_fields) < 4:
                         Event(
                             Message(
-                                priority="warning",
+                                priority="debug",
                                 publisher=NS.publisher_id,
                                 payload={"message": "Missing fields in cluster"
                                                     " stat"
@@ -537,7 +812,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     if index >= len(lines):
                         Event(
                             Message(
-                                priority="warning",
+                                priority="debug",
                                 publisher=NS.publisher_id,
                                 payload={"message": "No pool stats to parse"}
                             )
@@ -560,7 +835,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         pool_max_avail_idx == -1:
                         Event(
                             Message(
-                                priority="warning",
+                                priority="debug",
                                 publisher=NS.publisher_id,
                                 payload={"message": "Missing fields in pool "
                                                     "stat"
@@ -575,7 +850,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     if len(pool_fields) < 5:
                         Event(
                             Message(
-                                priority="warning",
+                                priority="debug",
                                 publisher=NS.publisher_id,
                                 payload={"message": "Missing fields in pool"
                                                     " stat"

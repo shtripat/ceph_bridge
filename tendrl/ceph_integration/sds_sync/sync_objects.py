@@ -111,7 +111,7 @@ class SyncObjects(object):
                 else:
                     Event(
                         Message(
-                            priority="warning",
+                            priority="debug",
                             publisher=NS.publisher_id,
                             payload={"message": "Abandoning fetch for %s "
                                                 "started at %s"
@@ -173,7 +173,7 @@ class SyncObjects(object):
         if sync_type.cmp(version, self.get_version(sync_type)) <= 0:
             Event(
                 Message(
-                    priority="warning",
+                    priority="debug",
                     publisher=NS.publisher_id,
                     payload={"message": "Ignoring outdated update %s/%s" %
                                         (sync_type.str, version)

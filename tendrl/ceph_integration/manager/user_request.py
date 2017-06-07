@@ -482,7 +482,7 @@ class PoolCreatingRequest(OsdMapModifyingRequest):
                 if self._pool_id is None:
                     Event(
                         Message(
-                            priority="error",
+                            priority="debug",
                             publisher=NS.publisher_id,
                             payload={
                                 "message": "'{0}' not found, pools are "

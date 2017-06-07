@@ -34,7 +34,7 @@ class PoolExists(objects.BaseAtom):
         except etcd.EtcdKeyNotFound:
             Event(
                 Message(
-                    priority="warning",
+                    priority="error",
                     publisher=NS.publisher_id,
                     payload={
                         "message": "Pool with id %s doesnt exist" %

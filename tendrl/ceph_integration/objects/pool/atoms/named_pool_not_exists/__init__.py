@@ -43,7 +43,7 @@ class NamedPoolNotExists(objects.BaseAtom):
                 self.parameters['Pool.poolname']:
                 Event(
                     Message(
-                        priority="info",
+                        priority="error",
                         publisher=NS.publisher_id,
                         payload={
                             "message": "Pool with name %s already exists" %
