@@ -129,27 +129,30 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         self._sync_ec_profiles()
 
     def _sync_rbds(self):
-        pools = NS._int.client.read(
-            "clusters/%s/Pools" % NS.tendrl_context.integration_id,
-            recursive=True
-        )
-        for child in pools._children:
-            pool_id = child['key'].split('/')[-1]
-            pool_name = NS._int.client.read(
-                "clusters/%s/Pools/%s/pool_name" %
-                (NS.tendrl_context.integration_id, pool_id)
-            ).value
-            rbd_details = self._get_rbds(pool_name)
-            for k, v in rbd_details.iteritems():
-                NS.ceph.objects.Rbd(
-                    name=k,
-                    size=v['size'],
-                    pool_id=pool_id,
-                    flags=v['flags'],
-                    provisioned=self._to_bytes(v['provisioned']) if v.get(
-                        "provisioned") else None,
-                    used=self._to_bytes(v['used'])
-                ).save()
+        try:
+            pools = NS._int.client.read(
+                "clusters/%s/Pools" % NS.tendrl_context.integration_id,
+                recursive=True
+            )
+            for child in pools._children:
+                pool_id = child['key'].split('/')[-1]
+                pool_name = NS._int.client.read(
+                    "clusters/%s/Pools/%s/pool_name" %
+                    (NS.tendrl_context.integration_id, pool_id)
+                ).value
+                rbd_details = self._get_rbds(pool_name)
+                for k, v in rbd_details.iteritems():
+                    NS.ceph.objects.Rbd(
+                        name=k,
+                        size=v['size'],
+                        pool_id=pool_id,
+                        flags=v['flags'],
+                        provisioned=self._to_bytes(v['provisioned']) if v.get(
+                            "provisioned") else None,
+                        used=self._to_bytes(v['used'])
+                    ).save()
+        except etcd.EtcdKeyNotFound:
+            pass
 
     def _sync_ec_profiles(self):
         """Invokes the below CLI commands
