@@ -717,10 +717,13 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
     def _get_utilization_data(self):
         from ceph_argparse import json_command
         import rados
+        _conf_file = os.path.join("/etc/ceph",
+                                  NS.tendrl_context.cluster_name + ".conf")
+        # TODO (shtripat) use ceph.ceph_command instead of rados/json_command
         cluster_handle = rados.Rados(
             name=ceph.RADOS_NAME,
-            clustername=self.name,
-            conffile=''
+            clustername=NS.tendrl_context.cluster_name,
+            conffile=_conf_file
         )
         cluster_handle.connect()
         prefix = 'df'

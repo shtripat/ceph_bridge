@@ -26,7 +26,7 @@ RADOS_TIMEOUT = 20
 # always
 # present, although this is the case on a nicely ceph-deploy'd system
 RADOS_NAME = 'client.admin'
-
+SRC_DIR = '/etc/ceph'
 
 def fire_event(data, tag):
     return {tag: data}
@@ -289,8 +289,12 @@ def rados_commands(fsid, cluster_name, commands):
     import rados
 
     # Open a RADOS session
+    if cluster_name is None:
+        cluster_name = "ceph"
+
+    _conf_file = os.path.join(SRC_DIR, cluster_name  + ".conf")
     cluster_handle = rados.Rados(
-        name=RADOS_NAME, clustername=cluster_name, conffile=''
+        name=RADOS_NAME, clustername=cluster_name, conffile=_conf_file
     )
     cluster_handle.connect()
 
@@ -493,8 +497,12 @@ def get_cluster_object(cluster_name, sync_type):
     assert sync_type in SYNC_TYPES
 
     # Open a RADOS session
+    if cluster_name is None:
+        cluster_name = "ceph"
+
+    _conf_file = os.path.join(SRC_DIR, cluster_name  + ".conf")
     cluster_handle = rados.Rados(
-        name=RADOS_NAME, clustername=cluster_name, conffile=''
+        name=RADOS_NAME, clustername=cluster_name, conffile=_conf_file
     )
     cluster_handle.connect()
 
@@ -687,8 +695,10 @@ def get_heartbeats():
     for fsid, socket_path in mon_sockets.items():
         cluster_handle = None
         try:
+            _conf_file = os.path.join(SRC_DIR, fsid_names[fsid] + ".conf")
             cluster_handle = rados.Rados(
-                name=RADOS_NAME, clustername=fsid_names[fsid], conffile=''
+                name=RADOS_NAME, clustername=fsid_names[fsid],
+                conffile=_conf_file
             )
             cluster_handle.connect()
             cluster_heartbeat[fsid] = cluster_status(
