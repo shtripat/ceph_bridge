@@ -872,6 +872,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     dict['pcnt_used'] = pool_fields[pool_pcnt_used_idx]
                     pool_stat.append(dict)
                 index += 1
+            
+            cluster_handle.shutdown()
             return {'cluster': cluster_stat, 'pools': pool_stat}
 
     def _idx_in_list(self, list, str):
