@@ -50,6 +50,18 @@ class AdminSocketError(MonitoringError):
     pass
 
 
+def get_ceph_version():
+    result = ceph_command(None, ['--version'])
+    try:
+        version = result['out'].split(' ')[2]
+        return version
+    except (KeyError, AttributeError, IndexError) as ex:
+        sys.stdout.write("Error getting ceph --version")
+        sys.stdout.write(str(ex))
+        raise ex
+
+
+
 def rados_command(cluster_handle, prefix, args=None, decode=True):
     """Safer wrapper for ceph_argparse.json_command, which raises
 
@@ -655,7 +667,7 @@ def get_heartbeats():
             # unresponsive, exclude it from report
             sys.stdout.write("Error getting ceph service status from admin "
                              "socket %s" % filename)
-            sys.stdout.write(ex)
+            sys.stdout.write(str(ex))
         else:
             if not service_data:
                 continue
@@ -667,11 +679,7 @@ def get_heartbeats():
                 # A mon in quorum is elegible to emit a cluster heartbeat
                 mon_sockets[service_data['fsid']] = filename
 
-    # Installed Ceph version (as oppose to per-service running ceph version)
-    ceph_version_str = subprocess.check_output(
-        "rpm -qa | grep ceph-[0-1]", shell=True
-    )
-    ceph_version = ceph_version_str.split("-")[1]
+    ceph_version = get_ceph_version()
 
     # For each ceph cluster with an in-quorum mon on this node, interrogate
     # the cluster
@@ -692,7 +700,7 @@ def get_heartbeats():
                              "from "
                              "admin socket %s" % (fsid_names[fsid],
                                                   socket_path))
-            sys.stdout.write(ex)
+            sys.stdout.write(str(ex))
             raise ex
         finally:
             if cluster_handle:
@@ -852,7 +860,7 @@ def heartbeat(fsid=None):
     except Exception as ex:
         sys.stdout.write("Error getting heartbeat for ceph cluster fsid %s"
                          % fsid)
-        sys.stdout.write(ex)
+        sys.stdout.write(str(ex))
         if type(ex) in [rados.Error, MonitoringError, AdminSocketError]:
             raise ex
 
