@@ -7,6 +7,7 @@ import re
 import socket
 import struct
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -649,10 +650,12 @@ def get_heartbeats():
             if "client" in filename:
                 continue
             service_data = service_status(filename)
-        except (rados.Error, MonitoringError):
+        except (rados.Error, MonitoringError) as ex:
             # Failed to get info for this service, stale socket or
             # unresponsive, exclude it from report
-            pass
+            sys.stdout.write("Error getting ceph service status from admin "
+                             "socket %s" % filename)
+            sys.stdout.write(ex)
         else:
             if not service_data:
                 continue
@@ -665,22 +668,16 @@ def get_heartbeats():
                 mon_sockets[service_data['fsid']] = filename
 
     # Installed Ceph version (as oppose to per-service running ceph version)
-    try:
-        ceph_version_str = subprocess.check_output(
-            "rpm -qa | grep ceph-[0-1]", shell=True
-        )
-        ceph_version_str = ceph_version_str.split("-")[1]
-    except subprocess.CalledProcessError:
-        ceph_version_str = None
-    if ceph_version_str:
-        ceph_version = ceph_version_str
-    else:
-        ceph_version = None
+    ceph_version_str = subprocess.check_output(
+        "rpm -qa | grep ceph-[0-1]", shell=True
+    )
+    ceph_version = ceph_version_str.split("-")[1]
 
     # For each ceph cluster with an in-quorum mon on this node, interrogate
     # the cluster
     cluster_heartbeat = {}
     for fsid, socket_path in mon_sockets.items():
+        cluster_handle = None
         try:
             cluster_handle = rados.Rados(
                 name=RADOS_NAME, clustername=fsid_names[fsid], conffile=''
@@ -689,12 +686,18 @@ def get_heartbeats():
             cluster_heartbeat[fsid] = cluster_status(
                 cluster_handle, fsid_names[fsid]
             )
-        except (rados.Error, MonitoringError):
-            # Something went wrong getting data for this cluster, exclude it
-            # from our report
-            pass
+        except (rados.Error, MonitoringError) as ex:
+            # Something went wrong getting data for this cluster
+            sys.stdout.write("Error fetching ceph (fsid: %s) cluster maps "
+                             "from "
+                             "admin socket %s" % (fsid_names[fsid],
+                                                  socket_path))
+            sys.stdout.write(ex)
+            raise ex
+        finally:
+            if cluster_handle:
+                cluster_handle.shutdown()
 
-    cluster_handle.shutdown()
     return ceph_version, cluster_heartbeat
 
 
@@ -702,13 +705,10 @@ def service_status(socket_path):
     """Given an admin socket path, learn all we can about that service
 
     """
-    try:
-        cluster_name, service_type, service_id = \
-            re.match(
-                "^(.+?)-(.+?)\.(.+)\.asok$",
-                os.path.basename(socket_path)).groups()
-    except AttributeError:
-        return None
+    cluster_name, service_type, service_id = \
+        re.match(
+            "^(.+?)-(.+?)\.(.+)\.asok$",
+            os.path.basename(socket_path)).groups()
 
     status = None
     # Interrogate the service for its FSID
@@ -842,10 +842,19 @@ def _heartbeat(fsid):
 
 def heartbeat(fsid=None):
     try:
+        import rados
+    except ImportError:
+        # Ceph isn't installed, report no services or clusters
+        return None, {}
+
+    try:
         return _heartbeat(fsid)
-    except Exception:
-        # TODO(Rohan): Tackle this later
-        pass
+    except Exception as ex:
+        sys.stdout.write("Error getting heartbeat for ceph cluster fsid %s"
+                         % fsid)
+        sys.stdout.write(ex)
+        if type(ex) in [rados.Error, MonitoringError, AdminSocketError]:
+            raise ex
 
 
 def json_load_byteified(file_handle):
