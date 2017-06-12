@@ -734,6 +734,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             timeout=ceph.RADOS_TIMEOUT
         )
         if ret != 0:
+            cluster_handle.shutdown()
             raise rados.Error(outs)
         else:
             outbuf = outbuf.replace('RAW USED', 'RAW_USED')
@@ -744,6 +745,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             cluster_stat = {}
             pool_stat = []
             pool_stat_available = False
+            cluster_handle.shutdown()
+
             while index < len(lines):
                 line = lines[index]
                 if line == "" or line == '\n':
@@ -873,7 +876,6 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     pool_stat.append(dict)
                 index += 1
             
-            cluster_handle.shutdown()
             return {'cluster': cluster_stat, 'pools': pool_stat}
 
     def _idx_in_list(self, list, str):
