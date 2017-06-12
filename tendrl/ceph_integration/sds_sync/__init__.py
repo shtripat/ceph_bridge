@@ -717,10 +717,13 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
     def _get_utilization_data(self):
         from ceph_argparse import json_command
         import rados
+        _conf_file = os.path.join("/etc/ceph",
+                                  NS.tendrl_context.cluster_name + ".conf")
+        # TODO (shtripat) use ceph.ceph_command instead of rados/json_command
         cluster_handle = rados.Rados(
             name=ceph.RADOS_NAME,
-            clustername=self.name,
-            conffile=''
+            clustername=NS.tendrl_context.cluster_name,
+            conffile=_conf_file
         )
         cluster_handle.connect()
         prefix = 'df'
@@ -731,6 +734,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             timeout=ceph.RADOS_TIMEOUT
         )
         if ret != 0:
+            cluster_handle.shutdown()
             raise rados.Error(outs)
         else:
             outbuf = outbuf.replace('RAW USED', 'RAW_USED')
@@ -741,6 +745,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             cluster_stat = {}
             pool_stat = []
             pool_stat_available = False
+            cluster_handle.shutdown()
+
             while index < len(lines):
                 line = lines[index]
                 if line == "" or line == '\n':
@@ -869,6 +875,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     dict['pcnt_used'] = pool_fields[pool_pcnt_used_idx]
                     pool_stat.append(dict)
                 index += 1
+            
             return {'cluster': cluster_stat, 'pools': pool_stat}
 
     def _idx_in_list(self, list, str):
