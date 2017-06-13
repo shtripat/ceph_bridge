@@ -418,9 +418,13 @@ def rbd_command(cluster_name, command_args, pool_name=None):
         stdin=open(os.devnull, "r"),
         close_fds=True
     )
-    if p.poll() is None:  # Force kill if process is still alive
-        gevent.sleep(2)
-        if p.poll() is None:
+    retry = 0
+    while True:
+        if p.poll() is not None:
+            break
+        gevent.sleep(0.5)
+        retry += 1
+        if retry > 60 and p.poll() is None:
             p.kill()
             return {'out': "", 'err': "rbd command timed out", 'status': 1}
 
