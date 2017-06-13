@@ -161,11 +161,50 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             if data:
                 self.on_sync_object(data)
 
+        # Sync the utilization details for the cluster
+        self._sync_utilization()
+
         # Get and update rbds for pools
         self._sync_rbds()
 
         # Get and update ec profiles for the cluster
         self._sync_ec_profiles()
+
+    def _sync_utilization(self):
+        util_data = self._get_utilization_data()
+        NS.ceph.objects.Utilization(
+            total=util_data['cluster']['total'],
+            used=util_data['cluster']['used'],
+            available=util_data['cluster']['available'],
+            pcnt_used=util_data['cluster']['pcnt_used']
+        ).save()
+
+        # Loop through the pools and update the utilization details
+        try:
+            pools = NS._int.client.read(
+                "clusters/%s/Pools" % NS.tendrl_context.integration_id,
+            )
+        except etcd.EtcdKeyNotFound:
+            # No pools so no need to continue with pool utilization sync
+            return
+
+        for entry in pools.leaves:
+            fetched_pool = NS.ceph.objects.Pool(
+                pool_id=entry.key.split("Pools/")[-1]
+            ).load()
+            pool_util_data = util_data['pools'].get(
+                fetched_pool.pool_name,
+                {}
+            )
+            fetched_pool.used = pool_util_data.get(
+                'used',
+                fetched_pool.used
+            )
+            fetched_pool.percent_used = pool_util_data.get(
+                'pcnt_used',
+                fetched_pool.percent_used
+            )
+            fetched_pool.save()
 
     def _sync_rbds(self):
         try:
@@ -560,14 +599,6 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     status=sync_object['overall_status']
                 ).save()
             if sync_type.str == "osd_map":
-                util_data = self._get_utilization_data()
-                NS.ceph.objects.Utilization(
-                    total=util_data['cluster']['total'],
-                    used=util_data['cluster']['used'],
-                    available=util_data['cluster']['available'],
-                    pcnt_used=util_data['cluster']['pcnt_used']
-                ).save(update=False)
-
                 for raw_pool in sync_object.get('pools', []):
                     Event(
                         Message(
@@ -578,12 +609,6 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                                      }
                         )
                     )
-                    pool_used = 0
-                    pcnt = 0
-                    for pool in util_data['pools']:
-                        if pool['name'] == raw_pool['pool_name']:
-                            pool_used = pool['used']
-                            pcnt = pool['pcnt_used']
                     pool_type = 'replicated'
                     if 'erasure_code_profile' in raw_pool and \
                         raw_pool['erasure_code_profile'] != "":
@@ -607,8 +632,6 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         quota_enabled=quota_enabled,
                         quota_max_objects=raw_pool['quota_max_objects'],
                         quota_max_bytes=raw_pool['quota_max_bytes'],
-                        used=pool_used,
-                        percent_used=pcnt
                     ).save()
                 for raw_osd in sync_object.get('osds', []):
                     Event(
@@ -766,7 +789,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             lines = outbuf.split('\n')
             index = 0
             cluster_stat = {}
-            pool_stat = []
+            pool_stat = {}
             pool_stat_available = False
             cluster_handle.shutdown()
 
@@ -887,16 +910,16 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                             )
                         )
                         return {'cluster': cluster_stat, 'pools': {}}
-                    dict = {}
-                    dict['name'] = pool_fields[pool_name_idx]
-                    dict['available'] = self._to_bytes(
+
+                    loc_dict = {}
+                    loc_dict['available'] = self._to_bytes(
                         pool_fields[pool_max_avail_idx]
                     )
-                    dict['used'] = self._to_bytes(
+                    loc_dict['used'] = self._to_bytes(
                         pool_fields[pool_used_idx]
                     )
-                    dict['pcnt_used'] = pool_fields[pool_pcnt_used_idx]
-                    pool_stat.append(dict)
+                    loc_dict['pcnt_used'] = pool_fields[pool_pcnt_used_idx]
+                    pool_stat[pool_fields[pool_name_idx]] = loc_dict
                 index += 1
             
             return {'cluster': cluster_stat, 'pools': pool_stat}
