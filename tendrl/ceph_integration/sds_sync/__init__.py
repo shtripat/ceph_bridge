@@ -40,7 +40,7 @@ from tendrl.ceph_integration.types import SYNC_OBJECT_STR_TYPE
 from tendrl.ceph_integration.types import SYNC_OBJECT_TYPES
 
 from tendrl.commons.event import Event
-from tendrl.commons.message import Message
+from tendrl.commons.message import Message, ExceptionMessage
 from tendrl.commons import sds_sync
 from tendrl.commons.utils import cmd_utils
 from tendrl.commons.utils.time_utils import now
@@ -219,6 +219,35 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     (NS.tendrl_context.integration_id, pool_id)
                 ).value
                 rbd_details = self._get_rbds(pool_name)
+                # Rbd out of band delete handling
+                try:
+                    rbds = NS._int.client.read(
+                        "clusters/%s/Pools/%s/Rbds" %
+                        (NS.tendrl_context.integration_id, pool_id)
+                    )
+                    old_rbds = []
+                    for rbd in rbds.leaves:
+                        old_rbds.append(rbd.key.split("/")[-1])
+                    new_rbds = []
+                    for k, v in rbd_details.iteritems():
+                        new_rbds.append(k)
+                    delete_rbds = set(old_rbds) - set(new_rbds)
+                    for id in delete_rbds:
+                        NS._int.client.delete(
+                            "clusters/%s/Pools/%s/Rbds/%s" %
+                            (NS.tendrl_context.integration_id, pool_id, id),
+                            recursive=True 
+                        )
+                except etcd.EtcdKeyNotFound as ex:
+                    Event(
+                        ExceptionMessage(
+                            priority="debug",
+                            publisher=NS.publisher_id,
+                            payload={"message": "No rbds found for ceph cluster %s" % NS.tendrl_context.integration_id,
+                                     "exception": ex
+                                     }
+                        )
+                    )
                 for k, v in rbd_details.iteritems():
                     NS.ceph.objects.Rbd(
                         name=k,
@@ -315,6 +344,36 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                             info[item.split('=')[0]] = \
                                 item.split('=')[1].strip()
                             ec_profile_details[ec_profile] = info
+        # Ec profile out of band delete handling
+            try:
+                ec_profiles = NS._int.client.read(
+                    "clusters/%s/ECProfiles" %
+                    (NS.tendrl_context.integration_id)
+                )
+                old_ec_profiles = []
+                for ec_profile in ec_profiles.leaves:
+                    old_ec_profiles.append(ec_profile.key.split("/")[-1])
+                new_ec_profiles = []
+                for k, v in ec_profile_details.iteritems():
+                    new_ec_profiles.append(k)
+                delete_ec_profiles = set(
+                    old_ec_profiles) - set(new_ec_profiles)
+                for id in delete_ec_profiles:
+                    NS._int.client.delete(
+                        "clusters/%s/ECProfiles/%s" %
+                        (NS.tendrl_context.integration_id, id),
+                        recursive=True
+                    )
+            except etcd.EtcdKeyNotFound as ex:
+                Event(
+                    ExceptionMessage(
+                        priority="debug",
+                        publisher=NS.publisher_id,
+                        payload={"message": "key not found in etcd",
+                                 "exception": ex
+                                 }
+                    )
+                )
         available_ec_profiles = []
         for k, v in ec_profile_details.iteritems():
             NS.ceph.objects.ECProfile(
@@ -599,6 +658,36 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     status=sync_object['overall_status']
                 ).save()
             if sync_type.str == "osd_map":
+                # Pool out of band deletion handling
+                try:
+                    pools = NS._int.client.read(
+                        "clusters/%s/Pools" % NS.tendrl_context.integration_id
+                    )
+                    old_pool_ids = []
+                    for pool in pools.leaves:
+                        old_pool_ids.append(int(pool.key.split("/")[-1]))
+                    new_pool_ids = []
+                    for raw_pool in sync_object.get('pools', []):
+                        new_pool_ids.append(raw_pool['pool'])
+                    delete_pool_ids = set(old_pool_ids) - set(new_pool_ids)
+                    for id in delete_pool_ids:
+                        NS._int.client.delete(
+                            "clusters/%s/Pools/%s" % (
+                                NS.tendrl_context.integration_id,
+                                id
+                            ),
+                            recursive=True
+                        )
+                except etcd.EtcdKeyNotFound as ex:
+                    Event(
+                        ExceptionMessage(
+                            priority="debug",
+                            publisher=NS.publisher_id,
+                            payload={"message": "No pools found for ceph cluster %s" % NS.tendrl_context.integration_id,
+                                     "exception": ex
+                                     }
+                        )
+                    )
                 for raw_pool in sync_object.get('pools', []):
                     Event(
                         Message(
@@ -633,6 +722,36 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         quota_max_objects=raw_pool['quota_max_objects'],
                         quota_max_bytes=raw_pool['quota_max_bytes'],
                     ).save()
+                # Osd out of band deletion handling
+                try:
+                    osds = NS._int.client.read(
+                        "clusters/%s/Osds" % NS.tendrl_context.integration_id
+                    )
+                    old_osds = []
+                    for osd in osds.leaves:
+                        old_osds.append(str(osd.key.split("/")[-1]))
+                    new_osds = []
+                    for raw_osd in sync_object.get('osds', []):
+                        new_osds.append(raw_osd['uuid'])
+                    delete_osds = set(old_osds) - set(new_osds)
+                    for id in delete_osds:
+                        NS._int.client.delete(
+                            "clusters/%s/Osds/%s" % (
+                                NS.tendrl_context.integration_id,
+                                id
+                            ),
+                            recursive=True
+                        )
+                except etcd.EtcdKeyNotFound as ex:
+                    Event(
+                        ExceptionMessage(
+                            priority="debug",
+                            publisher=NS.publisher_id,
+                            payload={"message": "key not found in etcd",
+                                     "exception": ex
+                                     }
+                        )
+                    )
                 for raw_osd in sync_object.get('osds', []):
                     Event(
                         Message(
