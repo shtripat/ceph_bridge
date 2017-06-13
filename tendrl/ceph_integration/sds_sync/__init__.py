@@ -1,4 +1,3 @@
-import etcd
 import copy
 import datetime
 import etcd
@@ -244,7 +243,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         ExceptionMessage(
                             priority="debug",
                             publisher=NS.publisher_id,
-                            payload={"message": "key not found in etcd",
+                            payload={"message": "No rbds found for ceph cluster %s" % NS.tendrl_context.integration_id,
                                      "exception": ex
                                      }
                         )
