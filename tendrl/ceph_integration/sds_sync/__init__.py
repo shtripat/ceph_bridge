@@ -190,6 +190,29 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                             "provisioned") else None,
                         used=self._to_bytes(v['used'])
                     ).save()
+                try:
+                    rbds = NS._int.client.read(
+                        "clusters/%s/Pools/%s/Rbds" %
+                        (NS.tendrl_context.integration_id, pool_id)
+                    )
+                except etcd.EtcdKeyNotFound:
+                    # no rbds for pool, continue
+                    continue
+
+                for entry in rbds.leaves:
+                    fetched_rbd = NS.ceph.objects.Rbd(
+                        pool_id=pool_id,
+                        name=entry.key.split("Rbds/")[-1]
+                    ).load()
+                    if fetched_rbd.name not in rbd_details.keys():
+                        NS._int.client.delete(
+                            "clusters/%s/Pools/%s/Rbds/%s" % (
+                                NS.tendrl_context.integration_id,
+                                pool_id,
+                                fetched_rbd.name
+                            ),
+                            recursive=True
+                        )
         except etcd.EtcdKeyNotFound:
             pass
 
@@ -706,7 +729,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     commands,
                     pool_name
                 )
-                if cmd_out['err'] == "":
+                if cmd_out['status'] == 0 and cmd_out['out'] != "":
                     rbd_details[rbd]['provisioned'] = \
                         cmd_out['out'].split('\n')[1].split()[1]
                     rbd_details[rbd]['used'] = \
