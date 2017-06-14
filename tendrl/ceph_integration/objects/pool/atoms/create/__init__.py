@@ -21,6 +21,9 @@ class Create(objects.BaseAtom):
                      type=self.parameters.get('Pool.type'),
                      erasure_code_profile=self.parameters.get(
                          'Pool.erasure_code_profile'))
+        if self.parameters.get('Pool.type', '') == 'erasure':
+            attrs.pop('size')
+            attrs.pop('min_size')
         if 'Pool.quota_enabled' in self.parameters and \
             self.parameters['Pool.quota_enabled'] is True:
             attrs['quota_max_objects'] = \
