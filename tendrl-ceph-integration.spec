@@ -37,6 +37,7 @@ install -Dm 0644 etc/tendrl/ceph-integration/logging.yaml.timedrotation.sample $
 install -p -D -m 0644 systemd/tendrl-ceph-integration.service $RPM_BUILD_ROOT%{_unitdir}/tendrl-ceph-integration.service
 
 %post
+systemctl enable tendrl-ceph-integration
 %systemd_post tendrl-ceph-integration.service
 
 %preun
