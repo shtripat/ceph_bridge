@@ -30,17 +30,19 @@ from tendrl.ceph_integration.sds_sync.sync_objects import SyncObjects
 from tendrl.ceph_integration.types import CRUSH_MAP
 from tendrl.ceph_integration.types import CRUSH_NODE
 from tendrl.ceph_integration.types import EC_PROFILE
+from tendrl.ceph_integration.types import ERROR
+from tendrl.ceph_integration.types import INFO
 from tendrl.ceph_integration.types import OSD
 from tendrl.ceph_integration.types import POOL
 from tendrl.ceph_integration.types import RBD
-from tendrl.ceph_integration.types import INFO, WARNING, \
-    RECOVERY, ERROR, CRITICAL, ERROR, SEVERITIES
-
+from tendrl.ceph_integration.types import SEVERITIES
 from tendrl.ceph_integration.types import SYNC_OBJECT_STR_TYPE
 from tendrl.ceph_integration.types import SYNC_OBJECT_TYPES
+from tendrl.ceph_integration.types import WARNING
 
 from tendrl.commons.event import Event
-from tendrl.commons.message import Message, ExceptionMessage
+from tendrl.commons.message import ExceptionMessage
+from tendrl.commons.message import Message
 from tendrl.commons import sds_sync
 from tendrl.commons.utils import cmd_utils
 from tendrl.commons.utils.time_utils import now
@@ -94,7 +96,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             )
         except etcd.EtcdKeyNotFound:
             out, err, rc = cmd_utils.Command(
-                "ceph auth get mon. --cluster %s" %\
+                "ceph auth get mon. --cluster %s" %
                 NS.tendrl_context.cluster_name
             ).run()
 
@@ -104,16 +106,18 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         priority="debug",
                         publisher=NS.publisher_id,
                         payload={
-                            "message": "Couldn't get monitor key. Error:%s " %\
+                            "message": "Couldn't get monitor key. Error:%s" %
                             err
                         }
                     )
                 )
             else:
                 if out and out != "":
-                    mon_sec = out.split('\n')[1].strip().split(' = ')[1].strip()
+                    mon_sec = out.split('\n')[1].strip().split(
+                        ' = ')[1].strip()
                     NS._int.wclient.write(
-                        "clusters/%s/_mon_key" % NS.tendrl_context.integration_id,
+                        "clusters/%s/_mon_key" %
+                        NS.tendrl_context.integration_id,
                         mon_sec
                     )
 
@@ -236,14 +240,16 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         NS._int.client.delete(
                             "clusters/%s/Pools/%s/Rbds/%s" %
                             (NS.tendrl_context.integration_id, pool_id, id),
-                            recursive=True 
+                            recursive=True
                         )
                 except etcd.EtcdKeyNotFound as ex:
                     Event(
                         ExceptionMessage(
                             priority="debug",
                             publisher=NS.publisher_id,
-                            payload={"message": "No rbds found for ceph cluster %s" % NS.tendrl_context.integration_id,
+                            payload={"message":
+                                     "No rbds found for ceph cluster %s"
+                                     % NS.tendrl_context.integration_id,
                                      "exception": ex
                                      }
                         )
@@ -402,10 +408,11 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             crud = Crud()
             crud.create("ec_profile", attrs)
 
-    def _emit_event(self, severity, resource, curr_value, msg, plugin_instance=None):
+    def _emit_event(self, severity, resource, curr_value, msg,
+                    plugin_instance=None):
         if not NS.node_context.node_id:
             return
-        
+
         alert = {}
         alert['source'] = NS.publisher_id
         alert['pid'] = os.getpid()
@@ -445,7 +452,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             if health_severity[new_status] < health_severity[old_status]:
                 # A worsening of health
                 event_sev = health_severity[new_status]
-                msg = "Health of cluster '{name}' degraded from {old} to {new}".format(
+                msg = "Health of cluster '{name}' degraded from \
+                    {old} to {new}".format(
                     old=old_status,
                     new=new_status,
                     name=NS.tendrl_context.cluster_name
@@ -453,7 +461,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             else:
                 # An improvement in health
                 event_sev = INFO
-                msg = "Health of cluster '{name}' recovered from {old} to {new}".format(
+                msg = "Health of cluster '{name}' recovered from \
+                    {old} to {new}".format(
                     old=old_status,
                     new=new_status,
                     name=NS.tendrl_context.cluster_name
@@ -635,16 +644,16 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         if new_object:
             # Check and raise any alerts if required
 
-            # TODO (team) Enabled the below if condition as when
+            # TODO(team) Enabled the below if condition as when
             # alerting needed for cluster health, mon status, pool
             # status etc
 
-            #if sync_type.str == "health":
+            # if sync_type.str == "health":
             #    self._on_health(sync_object)
-            #if sync_type.str == "mon_status":
+            # if sync_type.str == "mon_status":
             #    self._on_mon_status(sync_object)
             if sync_type.str == "osd_map":
-                #self._on_pool_status(sync_object)
+                # self._on_pool_status(sync_object)
                 self._on_osd_map(sync_object)
 
             NS.ceph.objects.SyncObject(
@@ -683,7 +692,9 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         ExceptionMessage(
                             priority="debug",
                             publisher=NS.publisher_id,
-                            payload={"message": "No pools found for ceph cluster %s" % NS.tendrl_context.integration_id,
+                            payload={"message": "No pools found \
+                                     for ceph cluster %s"
+                                     % NS.tendrl_context.integration_id,
                                      "exception": ex
                                      }
                         )
@@ -884,7 +895,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         import rados
         _conf_file = os.path.join("/etc/ceph",
                                   NS.tendrl_context.cluster_name + ".conf")
-        # TODO (shtripat) use ceph.ceph_command instead of rados/json_command
+        # TODO(shtripat) use ceph.ceph_command instead of rados/json_command
         cluster_handle = rados.Rados(
             name=ceph.RADOS_NAME,
             clustername=NS.tendrl_context.cluster_name,
@@ -1040,7 +1051,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     loc_dict['pcnt_used'] = pool_fields[pool_pcnt_used_idx]
                     pool_stat[pool_fields[pool_name_idx]] = loc_dict
                 index += 1
-            
+
             return {'cluster': cluster_stat, 'pools': pool_stat}
 
     def _idx_in_list(self, list, str):
