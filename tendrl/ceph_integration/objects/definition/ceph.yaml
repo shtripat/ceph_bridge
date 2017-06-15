@@ -565,11 +565,17 @@ namespace.ceph:
         uuid:
           help: UUID
           type: String
+        hostname:
+          help: Name of the host
+          type: String
         public_addr:
           help: Public Address
           type: String
         cluster_addr:
           help: Cluster Address
+          type: String
+        device_path:
+          help: device path
           type: String
         heartbeat_front_addr:
           help: Heartbeat front address
@@ -610,6 +616,15 @@ namespace.ceph:
         last_clean_end:
           help: Last clean end
           type: int
+        total:
+          help: total size of osd
+          type: int
+        used:
+          help: used size
+          type: int
+        used_pcnt:
+          help: used percent
+          type: String
       help: "Osd"
       enabled: true
       value: clusters/$TendrlContext.integration_id/Osds/$Osd.uuid
