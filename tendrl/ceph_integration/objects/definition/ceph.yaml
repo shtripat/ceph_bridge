@@ -21,6 +21,8 @@ namespace.ceph:
           - Pool.quota_max_bytes
       pre_run:
         - ceph.objects.Pool.atoms.NamedPoolNotExists
+      post_run:
+        - ceph.objects.Pool.atoms.CheckPoolAvailable
       run: ceph.flows.CreatePool
       type: Create
       uuid: faeab231-69e9-4c9d-b5ef-a67ed057f98b
@@ -41,6 +43,8 @@ namespace.ceph:
           - ECProfile.directory
           - ECProfile.ruleset_failure_domain
       run: ceph.flows.CreateECProfile
+      post_run:
+        - ceph.objects.ECProfile.atoms.CheckECProfileAvailable
       type: Create
       uuid: faeab231-69e9-4c9d-b5ef-a67ed057f98d
   objects:
@@ -102,6 +106,16 @@ namespace.ceph:
           run: ceph.objects.ECProfile.atoms.Delete
           type: Delete
           uuid: 7a2df258-9b24-4fd3-a66f-ee346e2e3740
+        CheckECProfileAvailable:
+          enabled: true
+          help: Check if ECProfile available
+          inputs:
+            mandatory:
+              - ECProfile.name
+          name: ECProfile available
+          run: ceph.objects.ECProfile.atoms.CheckECProfileAvailable
+          type: Check
+          uuid: 7a2df258-9b24-4fd3-a66f-ee346e2e3759
       flows:
         DeleteECProfile:
           tags:
@@ -212,6 +226,17 @@ namespace.ceph:
           run: ceph.objects.Rbd.atoms.RbdExists
           type: Get
           uuid: 7a2df258-9b24-4fd3-a66f-ee346e2e3922
+        CheckRbdAvailable:
+          enabled: true
+          help: Check if rbd is available
+          inputs:
+            mandatory:
+              - Rbd.pool_id
+              - Rbd.name
+          name: Rbd available
+          run: ceph.objects.Rbd.atoms.CheckRbdAvailable
+          type: Check
+          uuid: 7a2df258-9b24-4fd3-a66f-ee346e2e3929
       flows:
         CreateRbd:
           tags:
@@ -239,6 +264,8 @@ namespace.ceph:
               - Rbd.pool_quota_max_bytes
           pre_run:
             - ceph.objects.Rbd.atoms.RbdNotExists
+          post_run:
+            - ceph.objects.Rbd.atoms.CheckRbdAvailable
           run: ceph.objects.Rbd.flows.CreateRbd
           type: Create
           uuid: 9bc41d8f-a0cf-420a-b2fe-18761e07f3d2
@@ -442,6 +469,16 @@ namespace.ceph:
           run: ceph.objects.Pool.atoms.PoolNotExists
           type: Get
           uuid: 9a2df258-9b24-4fd3-a66f-ee346e2e3832
+        CheckPoolAvailable:
+          enabled: true
+          help: check if pool available
+          inputs:
+            mandatory:
+              - Pool.poolname
+          name: pool is available
+          run: ceph.objects.Pool.atoms.CheckPoolAvailable
+          type: Check
+          uuid: 9a2df258-9b24-4fd3-a66f-ee346e2e3839
       flows:
         DeletePool:
           tags:
