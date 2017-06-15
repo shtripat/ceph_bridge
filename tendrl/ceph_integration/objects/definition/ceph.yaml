@@ -558,6 +558,170 @@ namespace.ceph:
       enabled: true
       value: clusters/$TendrlContext.integration_id/Utilization
     Osd:
+      atoms:
+        MarkDown:
+          enabled: true
+          help: mark osd down
+          inputs:
+            mandatory:
+              - Osd.id
+          name: osd down
+          run: ceph.objects.Osd.atoms.MarkDown
+          type: Update
+          uuid: 112df258-9b24-4fd3-a66f-ee346e2e3832
+        MarkIn:
+          enabled: true
+          help: mark osd in
+          inputs:
+            mandatory:
+              - Osd.id
+          name: osd in
+          run: ceph.objects.Osd.atoms.MarkIn
+          type: Update
+          uuid: 112df258-9b24-4fd3-a66f-ee346e2e3833
+        MarkOut:
+          enabled: true
+          help: mark osd out
+          inputs:
+            mandatory:
+              - Osd.id
+          name: osd out
+          run: ceph.objects.Osd.atoms.MarkOut
+          type: Update
+          uuid: 112df258-9b24-4fd3-a66f-ee346e2e3834
+        Repair:
+          enabled: true
+          help: repair osd
+          inputs:
+            mandatory:
+              - Osd.id
+          name: repair osd
+          run: ceph.objects.Osd.atoms.Repair
+          type: Update
+          uuid: 112df258-9b24-4fd3-a66f-ee346e2e3835
+        Reweight:
+          enabled: true
+          help: reweight osd
+          inputs:
+            mandatory:
+              - Osd.id
+              - Osd.weight
+          name: reweight osd
+          run: ceph.objects.Osd.atoms.Reweight
+          type: Update
+          uuid: 112df258-9b24-4fd3-a66f-ee346e2e3836
+        Scrub:
+          enabled: true
+          help: scrub osd
+          inputs:
+            mandatory:
+              - Osd.id
+          name: scrub osd
+          run: ceph.objects.Osd.atoms.Scrub
+          type: Update
+          uuid: 112df258-9b24-4fd3-a66f-ee346e2e3837
+        OsdExists:
+          enabled: true
+          help: check if osd exists
+          inputs:
+            mandatory:
+              - Osd.id
+          name: check osd exists
+          run: ceph.objects.Osd.atoms.OsdExists
+          type: Get
+          uuid: 112df258-9b24-4fd3-a66f-ee346e2e3838
+      flows:
+        MarkOsdDown:
+          tags:
+            - "tendrl/integration/$TendrlContext.integration_id"
+          atoms:
+            - ceph.objects.Osd.atoms.MarkDown
+          help: mark osd down
+          enabled: true
+          inputs:
+            mandatory:
+              - Osd.id
+          pre_run:
+            - ceph.objects.Osd.atoms.OsdExists
+          run: ceph.objects.Osd.flows.MarkOsdDown
+          type: Update
+          uuid: 1ac41d8f-a0cf-420a-b2fe-18761e07f3b2
+        MarkOsdIn:
+          tags:
+            - "tendrl/integration/$TendrlContext.integration_id"
+          atoms:
+            - ceph.objects.Osd.atoms.MarkIn
+          help: mark osd in
+          enabled: true
+          inputs:
+            mandatory:
+              - Osd.id
+          pre_run:
+            - ceph.objects.Osd.atoms.OsdExists
+          run: ceph.objects.Osd.flows.MarkOsdIn
+          type: Update
+          uuid: 1ac41d8f-a0cf-420a-b2fe-18761e07f3b3
+        MarkOsdOut:
+          tags:
+            - "tendrl/integration/$TendrlContext.integration_id"
+          atoms:
+            - ceph.objects.Osd.atoms.MarkOut
+          help: mark osd out
+          enabled: true
+          inputs:
+            mandatory:
+              - Osd.id
+          pre_run:
+            - ceph.objects.Osd.atoms.OsdExists
+          run: ceph.objects.Osd.flows.MarkOsdOut
+          type: Update
+          uuid: 1ac41d8f-a0cf-420a-b2fe-18761e07f3b4
+        RepairOsd:
+          tags:
+            - "tendrl/integration/$TendrlContext.integration_id"
+          atoms:
+            - ceph.objects.Osd.atoms.Repair
+          help: repair osd
+          enabled: true
+          inputs:
+            mandatory:
+              - Osd.id
+          pre_run:
+            - ceph.objects.Osd.atoms.OsdExists
+          run: ceph.objects.Osd.flows.RepairOsd
+          type: Update
+          uuid: 1ac41d8f-a0cf-420a-b2fe-18761e07f3b5
+        ReweightOsd:
+          tags:
+            - "tendrl/integration/$TendrlContext.integration_id"
+          atoms:
+            - ceph.objects.Osd.atoms.Reweight
+          help: reweight osd
+          enabled: true
+          inputs:
+            mandatory:
+              - Osd.id
+              - Osd.weight
+          pre_run:
+            - ceph.objects.Osd.atoms.OsdExists
+          run: ceph.objects.Osd.flows.ReweightOsd
+          type: Update
+          uuid: 1ac41d8f-a0cf-420a-b2fe-18761e07f3b6
+        ScrubOsd:
+          tags:
+            - "tendrl/integration/$TendrlContext.integration_id"
+          atoms:
+            - ceph.objects.Osd.atoms.Scrub
+          help: scrub osd
+          enabled: true
+          inputs:
+            mandatory:
+              - Osd.id
+          pre_run:
+            - ceph.objects.Osd.atoms.OsdExists
+          run: ceph.objects.Osd.flows.ScrubOsd
+          type: Update
+          uuid: 1ac41d8f-a0cf-420a-b2fe-18761e07f3b7
       attrs:
         id:
           help: Id of the OSD
