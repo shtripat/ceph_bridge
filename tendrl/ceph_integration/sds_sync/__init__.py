@@ -174,6 +174,37 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         # Get and update ec profiles for the cluster
         self._sync_ec_profiles()
 
+        # Sync the OSD utilization details
+        self._sync_osd_utilization()
+
+    def _sync_osd_utilization(self):
+        from ceph_argparse import json_command
+        import rados
+        _conf_file = os.path.join(
+            "/etc/ceph",
+            NS.tendrl_context.cluster_name + ".conf"
+        )
+        cluster_handle = rados.Rados(
+            name=ceph.RADOS_NAME,
+            clustername=NS.tendrl_context.cluster_name,
+            conffile=_conf_file
+        )
+        cluster_handle.connect()
+        prefix = 'osd df'
+        out = ceph.rados_command(
+            cluster_handle,
+            prefix=prefix,
+            args={}
+        )
+        if out:
+            for entry in out['nodes']:
+                fetched_osd = NS.ceph.objects.Osd(id=entry['id']).load()
+                fetched_osd.total = entry['kb'] * 1024
+                fetched_osd.used = entry['kb_used'] * 1024
+                fetched_osd.used_pcnt = str(entry['utilization'])
+                fetched_osd.save()
+        cluster_handle.shutdown()
+
     def _sync_utilization(self):
         util_data = self._get_utilization_data()
         NS.ceph.objects.Utilization(
@@ -773,9 +804,13 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                             }
                         )
                     )
+                    osd_host = socket.gethostbyaddr(
+                        raw_osd['public_addr'].split(':')[0]
+                    )[0]
                     NS.ceph.objects.Osd(
                         id=raw_osd['osd'],
                         uuid=raw_osd['uuid'],
+                        hostname=osd_host,
                         public_addr=raw_osd['public_addr'],
                         cluster_addr=raw_osd['cluster_addr'],
                         heartbeat_front_addr=raw_osd['heartbeat_front_addr'],
