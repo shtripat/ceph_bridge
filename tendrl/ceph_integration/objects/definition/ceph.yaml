@@ -664,6 +664,6 @@ namespace.ceph:
           type: String
       help: "Osd"
       enabled: true
-      value: clusters/$TendrlContext.integration_id/Osds/$Osd.uuid
+      value: clusters/$TendrlContext.integration_id/Osds/$Osd.id
       list: clusters/$TendrlContext.integration_id/Osds
 tendrl_schema_version: 0.3
