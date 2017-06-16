@@ -25,9 +25,12 @@ class CheckPoolAvailable(objects.BaseAtom):
             
             if pools:
                 for entry in pools.leaves:
-                    pool = Pool(pool_id=entry.key.split("Pools/")[-1]).load()
-                    if pool.pool_name == self.parameters['Pool.poolname']:
-                        return True
+                    try:
+                        pool = Pool(pool_id=entry.key.split("Pools/")[-1]).load()
+                        if pool.pool_name == self.parameters['Pool.poolname']:
+                            return True
+                    except etcd.EtcdKeyNotFound:
+                        continue
             
             retry_count += 1
             gevent.sleep(1)
