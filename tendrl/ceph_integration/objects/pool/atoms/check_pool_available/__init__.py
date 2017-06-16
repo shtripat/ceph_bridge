@@ -1,3 +1,4 @@
+import etcd
 import gevent
 
 from tendrl.ceph_integration.objects.pool import Pool
@@ -14,13 +15,20 @@ class CheckPoolAvailable(objects.BaseAtom):
     def run(self):
         retry_count = 0
         while True:
-            pools = NS._int.client.read(
-                "clusters/%s/Pools" % NS.tendrl_context.integration_id
-            )
-            for entry in pools.leaves:
-                pool = Pool(pool_id=entry.key.split("Pools/")[-1]).load()
-                if pool.pool_name == self.parameters['Pool.poolname']:
-                    return True
+            pools = None
+            try:
+                pools = NS._int.client.read(
+                    "clusters/%s/Pools" % NS.tendrl_context.integration_id
+                )
+            except etcd.EtcdKeyNotFound:
+                pass
+            
+            if pools:
+                for entry in pools.leaves:
+                    pool = Pool(pool_id=entry.key.split("Pools/")[-1]).load()
+                    if pool.pool_name == self.parameters['Pool.poolname']:
+                        return True
+            
             retry_count += 1
             gevent.sleep(1)
             if retry_count == 600:
