@@ -30,16 +30,18 @@ from tendrl.ceph_integration.sds_sync.sync_objects import SyncObjects
 from tendrl.ceph_integration.types import CRUSH_MAP
 from tendrl.ceph_integration.types import CRUSH_NODE
 from tendrl.ceph_integration.types import EC_PROFILE
+from tendrl.ceph_integration.types import ERROR
+from tendrl.ceph_integration.types import INFO
 from tendrl.ceph_integration.types import OSD
 from tendrl.ceph_integration.types import POOL
 from tendrl.ceph_integration.types import RBD
-from tendrl.ceph_integration.types import INFO, WARNING, \
-    RECOVERY, ERROR, CRITICAL, ERROR, SEVERITIES
-
+from tendrl.ceph_integration.types import SEVERITIES
 from tendrl.ceph_integration.types import SYNC_OBJECT_STR_TYPE
 from tendrl.ceph_integration.types import SYNC_OBJECT_TYPES
+from tendrl.ceph_integration.types import WARNING
 
 from tendrl.commons.event import Event
+from tendrl.commons.message import ExceptionMessage
 from tendrl.commons.message import Message
 from tendrl.commons import sds_sync
 from tendrl.commons.utils import cmd_utils
@@ -94,7 +96,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             )
         except etcd.EtcdKeyNotFound:
             out, err, rc = cmd_utils.Command(
-                "ceph auth get mon. --cluster %s" %\
+                "ceph auth get mon. --cluster %s" %
                 NS.tendrl_context.cluster_name
             ).run()
 
@@ -104,16 +106,18 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         priority="debug",
                         publisher=NS.publisher_id,
                         payload={
-                            "message": "Couldn't get monitor key. Error:%s " %\
+                            "message": "Couldn't get monitor key. Error:%s" %
                             err
                         }
                     )
                 )
             else:
                 if out and out != "":
-                    mon_sec = out.split('\n')[1].strip().split(' = ')[1].strip()
+                    mon_sec = out.split('\n')[1].strip().split(
+                        ' = ')[1].strip()
                     NS._int.wclient.write(
-                        "clusters/%s/_mon_key" % NS.tendrl_context.integration_id,
+                        "clusters/%s/_mon_key" %
+                        NS.tendrl_context.integration_id,
                         mon_sec
                     )
 
@@ -161,11 +165,81 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             if data:
                 self.on_sync_object(data)
 
+        # Sync the utilization details for the cluster
+        self._sync_utilization()
+
         # Get and update rbds for pools
         self._sync_rbds()
 
         # Get and update ec profiles for the cluster
         self._sync_ec_profiles()
+
+        # Sync the OSD utilization details
+        self._sync_osd_utilization()
+
+    def _sync_osd_utilization(self):
+        from ceph_argparse import json_command
+        import rados
+        _conf_file = os.path.join(
+            "/etc/ceph",
+            NS.tendrl_context.cluster_name + ".conf"
+        )
+        cluster_handle = rados.Rados(
+            name=ceph.RADOS_NAME,
+            clustername=NS.tendrl_context.cluster_name,
+            conffile=_conf_file
+        )
+        cluster_handle.connect()
+        prefix = 'osd df'
+        out = ceph.rados_command(
+            cluster_handle,
+            prefix=prefix,
+            args={}
+        )
+        if out:
+            for entry in out['nodes']:
+                fetched_osd = NS.ceph.objects.Osd(id=entry['id']).load()
+                fetched_osd.total = entry['kb'] * 1024
+                fetched_osd.used = entry['kb_used'] * 1024
+                fetched_osd.used_pcnt = str(entry['utilization'])
+                fetched_osd.save()
+        cluster_handle.shutdown()
+
+    def _sync_utilization(self):
+        util_data = self._get_utilization_data()
+        NS.ceph.objects.Utilization(
+            total=util_data['cluster']['total'],
+            used=util_data['cluster']['used'],
+            available=util_data['cluster']['available'],
+            pcnt_used=util_data['cluster']['pcnt_used']
+        ).save()
+
+        # Loop through the pools and update the utilization details
+        try:
+            pools = NS._int.client.read(
+                "clusters/%s/Pools" % NS.tendrl_context.integration_id,
+            )
+        except etcd.EtcdKeyNotFound:
+            # No pools so no need to continue with pool utilization sync
+            return
+
+        for entry in pools.leaves:
+            fetched_pool = NS.ceph.objects.Pool(
+                pool_id=entry.key.split("Pools/")[-1]
+            ).load()
+            pool_util_data = util_data['pools'].get(
+                fetched_pool.pool_name,
+                {}
+            )
+            fetched_pool.used = pool_util_data.get(
+                'used',
+                fetched_pool.used
+            )
+            fetched_pool.percent_used = pool_util_data.get(
+                'pcnt_used',
+                fetched_pool.percent_used
+            )
+            fetched_pool.save()
 
     def _sync_rbds(self):
         try:
@@ -180,6 +254,37 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     (NS.tendrl_context.integration_id, pool_id)
                 ).value
                 rbd_details = self._get_rbds(pool_name)
+                # Rbd out of band delete handling
+                try:
+                    rbds = NS._int.client.read(
+                        "clusters/%s/Pools/%s/Rbds" %
+                        (NS.tendrl_context.integration_id, pool_id)
+                    )
+                    old_rbds = []
+                    for rbd in rbds.leaves:
+                        old_rbds.append(rbd.key.split("/")[-1])
+                    new_rbds = []
+                    for k, v in rbd_details.iteritems():
+                        new_rbds.append(k)
+                    delete_rbds = set(old_rbds) - set(new_rbds)
+                    for id in delete_rbds:
+                        NS._int.client.delete(
+                            "clusters/%s/Pools/%s/Rbds/%s" %
+                            (NS.tendrl_context.integration_id, pool_id, id),
+                            recursive=True
+                        )
+                except etcd.EtcdKeyNotFound as ex:
+                    Event(
+                        ExceptionMessage(
+                            priority="debug",
+                            publisher=NS.publisher_id,
+                            payload={"message":
+                                     "No rbds found for ceph cluster %s"
+                                     % NS.tendrl_context.integration_id,
+                                     "exception": ex
+                                     }
+                        )
+                    )
                 for k, v in rbd_details.iteritems():
                     NS.ceph.objects.Rbd(
                         name=k,
@@ -190,6 +295,29 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                             "provisioned") else None,
                         used=self._to_bytes(v['used'])
                     ).save()
+                try:
+                    rbds = NS._int.client.read(
+                        "clusters/%s/Pools/%s/Rbds" %
+                        (NS.tendrl_context.integration_id, pool_id)
+                    )
+                except etcd.EtcdKeyNotFound:
+                    # no rbds for pool, continue
+                    continue
+
+                for entry in rbds.leaves:
+                    fetched_rbd = NS.ceph.objects.Rbd(
+                        pool_id=pool_id,
+                        name=entry.key.split("Rbds/")[-1]
+                    ).load()
+                    if fetched_rbd.name not in rbd_details.keys():
+                        NS._int.client.delete(
+                            "clusters/%s/Pools/%s/Rbds/%s" % (
+                                NS.tendrl_context.integration_id,
+                                pool_id,
+                                fetched_rbd.name
+                            ),
+                            recursive=True
+                        )
         except etcd.EtcdKeyNotFound:
             pass
 
@@ -253,6 +381,36 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                             info[item.split('=')[0]] = \
                                 item.split('=')[1].strip()
                             ec_profile_details[ec_profile] = info
+        # Ec profile out of band delete handling
+            try:
+                ec_profiles = NS._int.client.read(
+                    "clusters/%s/ECProfiles" %
+                    (NS.tendrl_context.integration_id)
+                )
+                old_ec_profiles = []
+                for ec_profile in ec_profiles.leaves:
+                    old_ec_profiles.append(ec_profile.key.split("/")[-1])
+                new_ec_profiles = []
+                for k, v in ec_profile_details.iteritems():
+                    new_ec_profiles.append(k)
+                delete_ec_profiles = set(
+                    old_ec_profiles) - set(new_ec_profiles)
+                for id in delete_ec_profiles:
+                    NS._int.client.delete(
+                        "clusters/%s/ECProfiles/%s" %
+                        (NS.tendrl_context.integration_id, id),
+                        recursive=True
+                    )
+            except etcd.EtcdKeyNotFound as ex:
+                Event(
+                    ExceptionMessage(
+                        priority="debug",
+                        publisher=NS.publisher_id,
+                        payload={"message": "key not found in etcd",
+                                 "exception": ex
+                                 }
+                    )
+                )
         available_ec_profiles = []
         for k, v in ec_profile_details.iteritems():
             NS.ceph.objects.ECProfile(
@@ -281,10 +439,11 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             crud = Crud()
             crud.create("ec_profile", attrs)
 
-    def _emit_event(self, severity, resource, curr_value, msg, plugin_instance=None):
+    def _emit_event(self, severity, resource, curr_value, msg,
+                    plugin_instance=None):
         if not NS.node_context.node_id:
             return
-        
+
         alert = {}
         alert['source'] = NS.publisher_id
         alert['pid'] = os.getpid()
@@ -324,7 +483,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             if health_severity[new_status] < health_severity[old_status]:
                 # A worsening of health
                 event_sev = health_severity[new_status]
-                msg = "Health of cluster '{name}' degraded from {old} to {new}".format(
+                msg = "Health of cluster '{name}' degraded from \
+                    {old} to {new}".format(
                     old=old_status,
                     new=new_status,
                     name=NS.tendrl_context.cluster_name
@@ -332,7 +492,8 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             else:
                 # An improvement in health
                 event_sev = INFO
-                msg = "Health of cluster '{name}' recovered from {old} to {new}".format(
+                msg = "Health of cluster '{name}' recovered from \
+                    {old} to {new}".format(
                     old=old_status,
                     new=new_status,
                     name=NS.tendrl_context.cluster_name
@@ -514,16 +675,16 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         if new_object:
             # Check and raise any alerts if required
 
-            # TODO (team) Enabled the below if condition as when
+            # TODO(team) Enabled the below if condition as when
             # alerting needed for cluster health, mon status, pool
             # status etc
 
-            #if sync_type.str == "health":
+            # if sync_type.str == "health":
             #    self._on_health(sync_object)
-            #if sync_type.str == "mon_status":
+            # if sync_type.str == "mon_status":
             #    self._on_mon_status(sync_object)
             if sync_type.str == "osd_map":
-                #self._on_pool_status(sync_object)
+                # self._on_pool_status(sync_object)
                 self._on_osd_map(sync_object)
 
             NS.ceph.objects.SyncObject(
@@ -537,14 +698,38 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     status=sync_object['overall_status']
                 ).save()
             if sync_type.str == "osd_map":
-                util_data = self._get_utilization_data()
-                NS.ceph.objects.Utilization(
-                    total=util_data['cluster']['total'],
-                    used=util_data['cluster']['used'],
-                    available=util_data['cluster']['available'],
-                    pcnt_used=util_data['cluster']['pcnt_used']
-                ).save(update=False)
-
+                # Pool out of band deletion handling
+                try:
+                    pools = NS._int.client.read(
+                        "clusters/%s/Pools" % NS.tendrl_context.integration_id
+                    )
+                    old_pool_ids = []
+                    for pool in pools.leaves:
+                        old_pool_ids.append(int(pool.key.split("/")[-1]))
+                    new_pool_ids = []
+                    for raw_pool in sync_object.get('pools', []):
+                        new_pool_ids.append(raw_pool['pool'])
+                    delete_pool_ids = set(old_pool_ids) - set(new_pool_ids)
+                    for id in delete_pool_ids:
+                        NS._int.client.delete(
+                            "clusters/%s/Pools/%s" % (
+                                NS.tendrl_context.integration_id,
+                                id
+                            ),
+                            recursive=True
+                        )
+                except etcd.EtcdKeyNotFound as ex:
+                    Event(
+                        ExceptionMessage(
+                            priority="debug",
+                            publisher=NS.publisher_id,
+                            payload={"message": "No pools found \
+                                     for ceph cluster %s"
+                                     % NS.tendrl_context.integration_id,
+                                     "exception": ex
+                                     }
+                        )
+                    )
                 for raw_pool in sync_object.get('pools', []):
                     Event(
                         Message(
@@ -555,12 +740,6 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                                      }
                         )
                     )
-                    pool_used = 0
-                    pcnt = 0
-                    for pool in util_data['pools']:
-                        if pool['name'] == raw_pool['pool_name']:
-                            pool_used = pool['used']
-                            pcnt = pool['pcnt_used']
                     pool_type = 'replicated'
                     if 'erasure_code_profile' in raw_pool and \
                         raw_pool['erasure_code_profile'] != "":
@@ -584,9 +763,37 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                         quota_enabled=quota_enabled,
                         quota_max_objects=raw_pool['quota_max_objects'],
                         quota_max_bytes=raw_pool['quota_max_bytes'],
-                        used=pool_used,
-                        percent_used=pcnt
                     ).save()
+                # Osd out of band deletion handling
+                try:
+                    osds = NS._int.client.read(
+                        "clusters/%s/Osds" % NS.tendrl_context.integration_id
+                    )
+                    old_osds = []
+                    for osd in osds.leaves:
+                        old_osds.append(str(osd.key.split("/")[-1]))
+                    new_osds = []
+                    for raw_osd in sync_object.get('osds', []):
+                        new_osds.append(raw_osd['uuid'])
+                    delete_osds = set(old_osds) - set(new_osds)
+                    for id in delete_osds:
+                        NS._int.client.delete(
+                            "clusters/%s/Osds/%s" % (
+                                NS.tendrl_context.integration_id,
+                                id
+                            ),
+                            recursive=True
+                        )
+                except etcd.EtcdKeyNotFound as ex:
+                    Event(
+                        ExceptionMessage(
+                            priority="debug",
+                            publisher=NS.publisher_id,
+                            payload={"message": "key not found in etcd",
+                                     "exception": ex
+                                     }
+                        )
+                    )
                 for raw_osd in sync_object.get('osds', []):
                     Event(
                         Message(
@@ -597,9 +804,13 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                             }
                         )
                     )
+                    osd_host = socket.gethostbyaddr(
+                        raw_osd['public_addr'].split(':')[0]
+                    )[0]
                     NS.ceph.objects.Osd(
                         id=raw_osd['osd'],
                         uuid=raw_osd['uuid'],
+                        hostname=osd_host,
                         public_addr=raw_osd['public_addr'],
                         cluster_addr=raw_osd['cluster_addr'],
                         heartbeat_front_addr=raw_osd['heartbeat_front_addr'],
@@ -706,7 +917,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                     commands,
                     pool_name
                 )
-                if cmd_out['err'] == "":
+                if cmd_out['status'] == 0 and cmd_out['out'] != "":
                     rbd_details[rbd]['provisioned'] = \
                         cmd_out['out'].split('\n')[1].split()[1]
                     rbd_details[rbd]['used'] = \
@@ -719,7 +930,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         import rados
         _conf_file = os.path.join("/etc/ceph",
                                   NS.tendrl_context.cluster_name + ".conf")
-        # TODO (shtripat) use ceph.ceph_command instead of rados/json_command
+        # TODO(shtripat) use ceph.ceph_command instead of rados/json_command
         cluster_handle = rados.Rados(
             name=ceph.RADOS_NAME,
             clustername=NS.tendrl_context.cluster_name,
@@ -743,7 +954,7 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
             lines = outbuf.split('\n')
             index = 0
             cluster_stat = {}
-            pool_stat = []
+            pool_stat = {}
             pool_stat_available = False
             cluster_handle.shutdown()
 
@@ -864,18 +1075,18 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
                             )
                         )
                         return {'cluster': cluster_stat, 'pools': {}}
-                    dict = {}
-                    dict['name'] = pool_fields[pool_name_idx]
-                    dict['available'] = self._to_bytes(
+
+                    loc_dict = {}
+                    loc_dict['available'] = self._to_bytes(
                         pool_fields[pool_max_avail_idx]
                     )
-                    dict['used'] = self._to_bytes(
+                    loc_dict['used'] = self._to_bytes(
                         pool_fields[pool_used_idx]
                     )
-                    dict['pcnt_used'] = pool_fields[pool_pcnt_used_idx]
-                    pool_stat.append(dict)
+                    loc_dict['pcnt_used'] = pool_fields[pool_pcnt_used_idx]
+                    pool_stat[pool_fields[pool_name_idx]] = loc_dict
                 index += 1
-            
+
             return {'cluster': cluster_stat, 'pools': pool_stat}
 
     def _idx_in_list(self, list, str):

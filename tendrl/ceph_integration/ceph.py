@@ -28,6 +28,7 @@ RADOS_TIMEOUT = 20
 RADOS_NAME = 'client.admin'
 SRC_DIR = '/etc/ceph'
 
+
 def fire_event(data, tag):
     return {tag: data}
 
@@ -59,7 +60,6 @@ def get_ceph_version():
         sys.stdout.write("Error getting ceph --version")
         sys.stdout.write(str(ex))
         raise ex
-
 
 
 def rados_command(cluster_handle, prefix, args=None, decode=True):
@@ -292,7 +292,7 @@ def rados_commands(fsid, cluster_name, commands):
     if cluster_name is None:
         cluster_name = "ceph"
 
-    _conf_file = os.path.join(SRC_DIR, cluster_name  + ".conf")
+    _conf_file = os.path.join(SRC_DIR, cluster_name + ".conf")
     cluster_handle = rados.Rados(
         name=RADOS_NAME, clustername=cluster_name, conffile=_conf_file
     )
@@ -418,9 +418,13 @@ def rbd_command(cluster_name, command_args, pool_name=None):
         stdin=open(os.devnull, "r"),
         close_fds=True
     )
-    if p.poll() is None:  # Force kill if process is still alive
-        gevent.sleep(2)
-        if p.poll() is None:
+    retry = 0
+    while True:
+        if p.poll() is not None:
+            break
+        gevent.sleep(0.5)
+        retry += 1
+        if retry > 60 and p.poll() is None:
             p.kill()
             return {'out': "", 'err': "rbd command timed out", 'status': 1}
 
@@ -500,7 +504,7 @@ def get_cluster_object(cluster_name, sync_type):
     if cluster_name is None:
         cluster_name = "ceph"
 
-    _conf_file = os.path.join(SRC_DIR, cluster_name  + ".conf")
+    _conf_file = os.path.join(SRC_DIR, cluster_name + ".conf")
     cluster_handle = rados.Rados(
         name=RADOS_NAME, clustername=cluster_name, conffile=_conf_file
     )
