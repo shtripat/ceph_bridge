@@ -64,7 +64,6 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         self._sync_objects = SyncObjects(self.name)
         self._request_coll = RequestCollection()
 
-
     def _ping_cluster(self):
         NS.tendrl_context = NS.tendrl_context.load()
         NS.node_context = NS.node_context.load()
@@ -80,7 +79,6 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
 
         NS.tendrl_context.cluster_name = self.name = cluster_data['name']
         NS.tendrl_context.save()
-
 
     def _run(self):
         Event(
