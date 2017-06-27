@@ -64,24 +64,23 @@ class CephIntegrationSdsSyncStateThread(sds_sync.SdsSyncThread):
         self._sync_objects = SyncObjects(self.name)
         self._request_coll = RequestCollection()
 
+
     def _ping_cluster(self):
         NS.tendrl_context = NS.tendrl_context.load()
         NS.node_context = NS.node_context.load()
-        try:
-            if NS.tendrl_context.cluster_id:
+        if NS.tendrl_context.cluster_id:
                 cluster_data = ceph.heartbeat(NS.tendrl_context.cluster_id)
-            else:
-                cluster_data = ceph.heartbeat()
-            if None not in cluster_data:
+                NS.tendrl_context.cluster_id = self.fsid = cluster_data['fsid']
+        else:
+            cluster_data = ceph.heartbeat()
+            if cluster_data:
                 if "fsid" in cluster_data:
                     NS.tendrl_context.cluster_id = self.fsid = \
                         cluster_data['fsid']
-                NS.tendrl_context.cluster_name = self.name = cluster_data['name']
-        except Exception as ex:
-            pass
-        if not hasattr(self,'name'):
-            self.name = None
+
+        NS.tendrl_context.cluster_name = self.name = cluster_data['name']
         NS.tendrl_context.save()
+
 
     def _run(self):
         Event(
